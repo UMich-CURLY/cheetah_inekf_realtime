@@ -1,0 +1,12 @@
+package cheetah_inekf_ros;
+
+struct legcontrol_t
+{
+    int8_t  num_joints;
+    double  lcm_timestamp;
+    double  q[num_joints];
+    double  p[num_joints];
+    double  qd[num_joints];
+    double  v[num_joints];
+    double  tau_est[num_joints];
+}

@@ -1,0 +1,45 @@
+#ifndef BODYESTIMATOR_H
+#define BODYESTIMATOR_H
+
+extern "C" { 
+    #include "cassie_slrt_data_t.h"
+}
+#include <Eigen/Dense>
+#include <vector>
+#include "ros/ros.h"
+#include "CheetahState.hpp"
+#include "InEKF.h"
+#include "H_VectorNav_to_LeftToeBottom.h"
+#include "H_VectorNav_to_RightToeBottom.h"
+#include "Jp_VectorNav_to_LeftToeBottom.h"
+#include "Jp_VectorNav_to_RightToeBottom.h"
+
+class BodyEstimator {
+
+    public:
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+        BodyEstimator();
+        bool enabled();
+        void disable();
+        bool biasInitialized();
+        void initBias(const double t, const cassie_slrt_data_t *slrt_data, const CassieState& state);
+        void initState(const double t, const cassie_slrt_data_t *slrt_data, const CassieState& state);
+        void update(const double t, const cassie_slrt_data_t *slrt_data, CassieState& state);
+        inekf::InEKF getFilter() const;
+        inekf::RobotState getState() const;
+
+    private:
+        inekf::InEKF filter_;
+        bool enabled_ = false;
+        bool bias_initialized_ = false;
+        bool static_bias_initialization_ = false;
+        std::vector<Eigen::Matrix<double,6,1>,Eigen::aligned_allocator<Eigen::Matrix<double,6,1>>> bias_init_vec_;
+        Eigen::Vector3d bg0_ = Eigen::Vector3d::Zero();
+        Eigen::Vector3d ba0_ = Eigen::Vector3d::Zero();
+        double t_prev_;
+        Eigen::Matrix<double,6,1> imu_prev_;
+        const Eigen::Matrix<double,14,14> encoder_cov_ = 0.0003 * Eigen::Matrix<double,14,14>::Identity(); // 1 deg std dev 
+        const Eigen::Matrix<double,3,3> prior_kinematics_cov_ = 0.003 * Eigen::Matrix<double,3,3>::Identity(); // Adds to FK covariance
+};
+
+#endif // BODYESTIMATOR_H
