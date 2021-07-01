@@ -1,18 +1,14 @@
 #ifndef BODYESTIMATOR_H
 #define BODYESTIMATOR_H
 
-extern "C" { 
-    #include "cassie_slrt_data_t.h"
-}
+// extern "C" { 
+//     #include "cassie_slrt_data_t.h"
+// }
 #include <Eigen/Dense>
 #include <vector>
 #include "ros/ros.h"
-#include "CheetahState.hpp"
+#include "system/cheetah_state.hpp"
 #include "InEKF.h"
-#include "H_VectorNav_to_LeftToeBottom.h"
-#include "H_VectorNav_to_RightToeBottom.h"
-#include "Jp_VectorNav_to_LeftToeBottom.h"
-#include "Jp_VectorNav_to_RightToeBottom.h"
 
 class BodyEstimator {
 
@@ -22,9 +18,9 @@ class BodyEstimator {
         bool enabled();
         void disable();
         bool biasInitialized();
-        void initBias(const double t, const cassie_slrt_data_t *slrt_data, const CassieState& state);
-        void initState(const double t, const cassie_slrt_data_t *slrt_data, const CassieState& state);
-        void update(const double t, const cassie_slrt_data_t *slrt_data, CassieState& state);
+        void initBias();
+        void initState();
+        void update();
         inekf::InEKF getFilter() const;
         inekf::RobotState getState() const;
 

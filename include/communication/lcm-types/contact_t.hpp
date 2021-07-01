@@ -11,7 +11,7 @@
 
 #include <vector>
 
-namespace cheetah_inekf_ros
+namespace cheetah_inekf_lcm
 {
 
 class contact_t

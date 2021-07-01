@@ -16,7 +16,8 @@
     <depend>roscpp</depend>
     <depend>std_msgs</depend>
     <depend>sensor_msgs</depend>
-    <!-- <depend>inekf_msgs</depend> -->
+    <depend>inekf_msgs</depend>
+    <depend>geometry_msgs</depend>
     <depend>tf</depend>
     <buildtool_depend>catkin</buildtool_depend>
 

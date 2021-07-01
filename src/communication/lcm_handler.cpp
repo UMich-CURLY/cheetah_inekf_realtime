@@ -1,6 +1,6 @@
-#include "cheetah_inekf_lcm/LcmHandler.hpp"
+#include "communication/lcm_handler.hpp"
 
-namespace cheetah_inekf_ros {
+namespace cheetah_inekf_lcm {
   template <unsigned int ENCODER_DIM>
   void InEKF_lcm<ENCODER_DIM>::imu_lcm_callback(const lcm::ReceiveBuffer* rbuf,
                                    const std::string& channel_name,
@@ -32,18 +32,27 @@ namespace cheetah_inekf_ros {
     ROS_DEBUG_STREAM("Receive new joint_state msg");    
     seq_joint_state_++;
 
+    sensor_msgs::JointState joint_state_msg;
+    joint_state_msg.header.seq = seq_joint_state_;
+    joint_state_msg.header.stamp = ros::Time::now();
+    joint_state_msg.header.frame_id = "/cheetah/joint_state";
     std::vector<double> joint_position(msg->q.begin(), msg->q.end() );
     std::vector<double> joint_velocity(msg->qd.begin(), msg->qd.end() );
     std::vector<double> joint_effort(msg->tau_est.begin(), msg->tau_est.end() );
     Eigen::Matrix<double, ENCODER_DIM, 1> encoder_pos;
     for (int j = 0; j < ENCODER_DIM; j++)
       encoder_pos(j) = joint_position[j];
+    joint_state_msg.position = joint_position;
+    joint_state_msg.velocity = joint_velocity;
+    joint_state_msg.effort = joint_effort;
+    joint_state_publisher_.publish(joint_state_msg);
 
     std_msgs::Header header;
     inekf_msgs::KinematicsArray kinematics_arr = KinematicsHandler<ENCODER_DIM>::callback_handler(header, encoder_pos, cov_encoders_, cov_prior_);
     kinematics_arr.header.seq = seq_joint_state_;
     kinematics_arr.header.stamp = joint_state_msg.header.stamp;
     kinematics_arr.header.frame_id =  "/cheetah/imu";
+    kinematics_publisher_.publish(kinematics_arr);
     kin_queue.push_back(kinematics_arr);
   }
 
@@ -69,12 +78,12 @@ namespace cheetah_inekf_ros {
       contacts.push_back(ct);
     }
     contact_msg.contacts = contacts;
-    contact_queue.push_back(contact);
+    contact_queue.push_back(contact_msg);
   }
 
 
 
 } // mini_cheetah
 
-template class cheetah_inekf_ros::KinematicsHandler<12>;
-template class cheetah_inekf_ros::InEKF_lcm<12>;
+template class cheetah_inekf_lcm::KinematicsHandler<12>;
+template class cheetah_inekf_lcm::InEKF_lcm<12>;

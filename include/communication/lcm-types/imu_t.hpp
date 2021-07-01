@@ -10,7 +10,7 @@
 #include <lcm/lcm_coretypes.h>
 
 
-namespace cheetah_inekf_ros
+namespace cheetah_inekf_lcm
 {
 
 class imu_t

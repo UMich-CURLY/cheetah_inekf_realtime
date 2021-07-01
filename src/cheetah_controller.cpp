@@ -13,10 +13,13 @@
 
 #include <iostream>
 #include "ros/ros.h"
-#include "CheetahSystem.h"
+#include "communication/lcm_handler.hpp"
+#include "system/cheetah_system.hpp"
 #include <memory>
 
 #define LCM_MULTICAST_URL "udpm://239.255.76.67:7667?ttl=2"
+
+template class cheetah_inekf_lcm::InEKF_lcm<12>;
 
 int main(int argc, char **argv)
 {
@@ -43,18 +46,18 @@ int main(int argc, char **argv)
     inekf::NoiseParams params;
 
     //TODO: Initialize CheetahSystem
-    CheetahSystem *system = new CheetahSystem(n);
-    system->setEstimator(std::make_shared<BodyEstimator>());
+    // CheetahSystem *system = new CheetahSystem(n);
+    // system->setEstimator(std::make_shared<BodyEstimator>());
 
-    //TODO: Listen/Respond Loop
-    ROS_INFO("Connecting to Cassie");
-    bool received_data = false;
-    while (ros::ok())
-    {
-        if (received_data)
-        {
-        }
-    }
+    // //TODO: Listen/Respond Loop
+    // ROS_INFO("Connecting to Cassie");
+    // bool received_data = false;
+    // while (ros::ok())
+    // {
+    //     if (received_data)
+    //     {
+    //     }
+    // }
 
     return 0;
 }

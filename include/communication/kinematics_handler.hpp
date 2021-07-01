@@ -17,12 +17,12 @@
 #include "kin/Jb_Body_to_HindRightFoot.h"
 
 
-namespace cheetah_inekf_ros {
+namespace cheetah_inekf_lcm {
   template <unsigned int ENCODER_DIM>
   class KinematicsHandler {
   public:
 
-    KinematicsHandler() : {
+    KinematicsHandler() {
     }
 
     static inekf_msgs::KinematicsArray callback_handler(std_msgs::Header & header,  const Eigen::Matrix<double, ENCODER_DIM, 1> & encoders,

@@ -1,14 +1,14 @@
 #pragma once
 
 // Utility libraries
-#include <boost/circular_buffer.hpp>>
+#include <boost/circular_buffer.hpp> >
 
 // ROS related
 #include <ros/ros.h>
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/JointState.h"
 #include "inekf_msgs/ContactArray.h"
-#include "KinematicsHandler.hpp"
+#include "communication/kinematics_handler.hpp"
 
 // LCM related
 #include <lcm/lcm-cpp.hpp>
@@ -16,11 +16,11 @@
 #include "lcm-types/legcontrol_t.hpp"
 #include "lcm-types/contact_t.hpp"
 
-namespace cheetah_inekf_ros {
-  template <unsigned int ENCODER_DIM>
+namespace cheetah_inekf_lcm {
+template <unsigned int ENCODER_DIM>
 class InEKF_lcm {
   public:
-    InEKF_lcm(LCM::lcm& lcm) : nh_("~"), lcm_(lcm) {
+      InEKF_lcm() : nh_("~") {
       
       ROS_INFO("Cheetah_Lcm ready to initialize...."); 
 	    
@@ -33,6 +33,12 @@ class InEKF_lcm {
       nh_.param<double>("encoder_std", encoder_std, 0.0174533); // 1 deg std
       nh_.param<double>("kinematic_prior_orientation_std", kinematic_prior_orientation_std, 0.174533); // 10 deg std
       nh_.param<double>("kinematic_prior_position_std", kinematic_prior_position_std, 0.05); // 5cm std
+
+      //Debugging ROS messages
+      imu_publisher_ = nh_.advertise<sensor_msgs::Imu>("imu", 10);
+      joint_state_publisher_ = nh_.advertise<sensor_msgs::JointState>("joint_state", 10);
+      kinematics_publisher_ = nh_.advertise<inekf_msgs::KinematicsArray>("kinematics", 10);
+      contact_publisher_ = nh_.advertise<inekf_msgs::ContactArray>("contact", 10);
 
       //TODO: make size a parameter
       imu_queue.resize(100);
@@ -62,10 +68,13 @@ class InEKF_lcm {
   
   private:
     ros::NodeHandle nh_;
+    ros::Publisher imu_publisher_;
+    ros::Publisher joint_state_publisher_;
+    ros::Publisher contact_publisher_;
+    ros::Publisher kinematics_publisher_;
 
     Eigen::Matrix<double,ENCODER_DIM,ENCODER_DIM> cov_encoders_;
     Eigen::Matrix<double,6,6> cov_prior_;
-    lcm::LCM lcm_;
 
   //std::string imu_lcm_topic, joint_state_lcm_topic, contact_lcm_topic;
 
@@ -75,7 +84,7 @@ class InEKF_lcm {
 
     uint32_t imu_queue_pos_, kin_queue_pos_, contact_queue_pos_;
     boost::circular_buffer<sensor_msgs::Imu> imu_queue;
-    boost::circular_buffer<sensor_msgs::inekf_msgs::KinematicsArray> kin_queue;
+    boost::circular_buffer<inekf_msgs::KinematicsArray> kin_queue;
     boost::circular_buffer<inekf_msgs::ContactArray> contact_queue;
 };
 
