@@ -1,12 +1,20 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cheetah_inekf_lcm)
-add_compile_options(-std=c++11)
+# add_compile_options(-std=c++11)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
-add_compile_options(-O3)
+# add_compile_options(-O3)
 # add_compile_options(-DEIGEN_NO_DEBUG)
 # add_compile_options(-march=native)
 #set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG -DEIGEN_NO_DEBUG -march=native -Wl,--no-as-needed -DBOOST_LOG_DYN_LINK -lboost_log -lpthread") #-DBOOST_LOG_DYN_LINK -lboost_log -lpthread needed for boost::log
+SET(CMAKE_CXX_COMPILER /usr/bin/g++)
+SET(CMAKE_C_COMPILER /usr/bin/gcc)
+
+message("CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
+message("CMAKE_CXX_FLAGS is ${CMAKE_CXX_FLAGS}")
+message("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE}")
 
 SET(CMAKE_MODULE_PATH ${${PROJECT_NAME}_SOURCE_DIR}/cmake)
 ## Find catkin macros and libraries
@@ -14,17 +22,22 @@ SET(CMAKE_MODULE_PATH ${${PROJECT_NAME}_SOURCE_DIR}/cmake)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS 
   roscpp
+  tf
   std_msgs
+  geometry_msgs
   sensor_msgs
   inekf_msgs
-  geometry_msgs
   message_filters
   #apriltag_msgs
-  tf
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+
+# Eigen 
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
+message("EIGEN3_INCLUDE_DIR: " ${EIGEN3_INCLUDE_DIR})
 
 # InEKF 
 find_package(inekf REQUIRED)
@@ -35,13 +48,8 @@ message("inekf_LIBRARY_DIRS: " ${inekf_LIBRARY_DIRS})
 
 # Boost
 find_package(Boost 1.58 REQUIRED COMPONENTS system)
-include_directories(${Boost_INCLUDE_DIR})
-message("Boost_INCLUDE_DIR: " ${Boost_INCLUDE_DIR})
-
-# Eigen 
-find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
-message("EIGEN3_INCLUDE_DIR: " ${EIGEN3_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
+message("Boost_INCLUDE_DIR: " ${Boost_INCLUDE_DIRS})
 
 find_package(lcm REQUIRED)
 if (LCM_FOUND)

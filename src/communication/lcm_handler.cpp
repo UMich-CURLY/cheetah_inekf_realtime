@@ -24,11 +24,10 @@ namespace cheetah_inekf_lcm {
     imu_msg.linear_acceleration.y = msg->acc[1];
     imu_msg.linear_acceleration.z = msg->acc[2];
 
-    ROS_INFO("Processed IMU x: %0.4f y: %0.4f z: %0.4f", 
-      imu_msg.linear_acceleration.x,
-      imu_msg.linear_acceleration.y,
-      imu_msg.linear_acceleration.z);
-
+    if (debug_enabled_) {
+        // ROS_INFO("imu acc x: %0.4f y: %0.4f z: %0.4f\n", imu_msg.linear_acceleration.x,
+        //         imu_msg.linear_acceleration.y, imu_msg.linear_acceleration.z);
+    }
     boost::mutex::scoped_lock lock(*cdata_mtx_);
     cheetah_data_in->imu_q.push_back(imu_msg);
   }
@@ -43,24 +42,33 @@ namespace cheetah_inekf_lcm {
     sensor_msgs::JointState joint_state_msg;
     joint_state_msg.header.seq = seq_joint_state_;
     joint_state_msg.header.stamp = ros::Time::now();
-    joint_state_msg.header.frame_id = "/cheetah/joint_state";
-    std::vector<double> joint_position(msg->q.begin(), msg->q.end() );
-    std::vector<double> joint_velocity(msg->qd.begin(), msg->qd.end() );
-    std::vector<double> joint_effort(msg->tau_est.begin(), msg->tau_est.end() );
+    // joint_state_msg.header.frame_id = "/cheetah/joint_state";
+    std::vector<double> joint_position(ENCODER_DIM);
+    std::copy(msg->q, msg->q+ENCODER_DIM, joint_position.begin());
+    std::vector<double> joint_velocity(ENCODER_DIM);
+    std::copy(msg->qd, msg->qd+ENCODER_DIM, joint_velocity.begin());
+    std::vector<double> joint_effort(ENCODER_DIM);
+    std::copy(msg->tau_est, msg->tau_est+ENCODER_DIM, joint_effort.begin());
     Eigen::Matrix<double, ENCODER_DIM, 1> encoder_pos;
     for (int j = 0; j < ENCODER_DIM; j++)
-      encoder_pos(j) = joint_position[j];
+        encoder_pos(j) = joint_position[j];
+
     joint_state_msg.position = joint_position;
     joint_state_msg.velocity = joint_velocity;
     joint_state_msg.effort = joint_effort;
     joint_state_publisher_.publish(joint_state_msg);
-
     std_msgs::Header header;
-    inekf_msgs::KinematicsArray kinematics_arr = KinematicsHandler<ENCODER_DIM>::callback_handler(header, encoder_pos, cov_encoders_, cov_prior_);
+    inekf_msgs::KinematicsArray kinematics_arr = 
+        KinematicsHandler<ENCODER_DIM>::callback_handler(header, encoder_pos, cov_encoders_, cov_prior_);
+
     kinematics_arr.header.seq = seq_joint_state_;
     kinematics_arr.header.stamp = joint_state_msg.header.stamp;
     kinematics_arr.header.frame_id =  "/cheetah/imu";
     // kinematics_publisher_.publish(kinematics_arr);
+    if (debug_enabled_) {
+        kinematics_debug_ << kinematics_arr << '\n';
+        std::cout << kinematics_arr << '\n';
+    }
 
     boost::mutex::scoped_lock lock(*cdata_mtx_);
     cheetah_data_in->kin_q.push_back(kinematics_arr);
@@ -89,6 +97,9 @@ namespace cheetah_inekf_lcm {
     }
     contact_msg.contacts = contacts;
 
+    if (debug_enabled_) {
+        // std::cout << "Contacts " << contact_msg << '\n';
+    }
     boost::mutex::scoped_lock lock(*cdata_mtx_);
     cheetah_data_in->contact_q.push_back(contact_msg);
   }

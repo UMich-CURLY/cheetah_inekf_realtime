@@ -10,6 +10,12 @@
 #include "utils/cheetah_data_t.hpp"
 #include "utils/PassiveTimeSync.h"
 
+// Threading
+#include <boost/thread/condition.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/circular_buffer.hpp>
+
 // TODO: Singleton design pattern (there should only be one CheetahSystem)
 class CheetahSystem {
 

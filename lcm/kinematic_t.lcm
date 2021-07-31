@@ -2,7 +2,8 @@ package cheetah_inekf_lcm;
 
 struct kinematic_t
 {
-    uint64_t seq;
-    double  timestamp;
-    int8_t  contact[num_legs];
+    int64_t     seq;
+    double      timestamp;
+    int8_t      num_legs;
+    int8_t      contact[num_legs];
 }

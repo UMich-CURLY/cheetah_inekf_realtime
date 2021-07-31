@@ -1,0 +1,1 @@
+cheetah_inekf_lcm/contact_t.class cheetah_inekf_lcm/imu_t.class cheetah_inekf_lcm/kinematic_t.class cheetah_inekf_lcm/legcontrol_t.class

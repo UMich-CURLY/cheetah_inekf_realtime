@@ -22,8 +22,8 @@
 #include <boost/algorithm/string.hpp>
 // Threading
 #include <boost/thread/condition.hpp>
-#include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
 #include <boost/circular_buffer.hpp>
 
 #define LCM_MULTICAST_URL "udpm://239.255.76.67:7667?ttl=2"
@@ -32,10 +32,7 @@ int main(int argc, char **argv)
 {
     // Initialize ROS node
     ros::init(argc, argv, "cheetah_controller");
-    ros::NodeHandle n;
-
-    // // Create private node handle
-    ros::NodeHandle nh("~");
+    ros::NodeHandle nh;
 
     // Initialize LCM
     lcm::LCM lcm(LCM_MULTICAST_URL);
@@ -49,10 +46,7 @@ int main(int argc, char **argv)
     boost::mutex cdata_mtx;
 
     cheetah_lcm_data_t cheetah_input_data(100);
-    cheetah_inekf_lcm::InEKF_lcm<12> lcm_publisher_node(lcm, &cheetah_input_data, &cdata_mtx);
-    lcm.subscribe("microstrain", &cheetah_inekf_lcm::InEKF_lcm<12>::imu_lcm_callback, &lcm_publisher_node);
-    lcm.subscribe("leg_control_data", &cheetah_inekf_lcm::InEKF_lcm<12>::joint_state_lcm_callback, &lcm_publisher_node);
-    lcm.subscribe("ground_truth", &cheetah_inekf_lcm::InEKF_lcm<12>::contact_lcm_callback, &lcm_publisher_node);
+    cheetah_inekf_lcm::InEKF_lcm<12> lcm_publisher_node(&lcm, &nh, &cheetah_input_data, &cdata_mtx);
 
     // Set noise parameters
     inekf::NoiseParams params;
@@ -62,13 +56,10 @@ int main(int argc, char **argv)
     // system->setEstimator(std::make_shared<BodyEstimator>());
 
     // //TODO: Listen/Respond Loop
-    ROS_INFO("Connecting to Cheetah");
-    bool received_data = false;
-    while (ros::ok())
+    bool received_data = true;
+    while (lcm.handle() == 0 && ros::ok())
     {
-        if (received_data)
-        {
-        }
+        ros::spinOnce();
     }
 
     return 0;

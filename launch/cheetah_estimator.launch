@@ -1,0 +1,8 @@
+<launch>
+    <arg name="cheetah_namespace" default="cheetah" />
+    <param name="use_sim_time" value="true" />
+
+    <!-- Run cheetah estimator publisher -->
+    <rosparam file="$(find cheetah_inekf_lcm)/config/settings.yaml" />
+  
+</launch>
