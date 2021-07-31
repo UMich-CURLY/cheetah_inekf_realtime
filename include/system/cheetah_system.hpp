@@ -7,26 +7,34 @@
 #include <iostream>
 #include <memory>
 #include "ros/ros.h"
-// #include "PassiveTimeSync.h"
+#include "utils/cheetah_data_t.hpp"
+#include "utils/PassiveTimeSync.h"
 
-// TODO: Singleton design pattern (there should only be one CassieSystem)
+// TODO: Singleton design pattern (there should only be one CheetahSystem)
 class CheetahSystem {
 
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         // Default Contructor
-        CheetahSystem(ros::NodeHandle n);
+        CheetahSystem(boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_data);
         // Step forward one iteration of the system
-        // *uses the sensor outputs to compute the motor inputs to send via LCM
-        // void step(const cassie_slrt_data_t *slrt_data, cassie_linux_data_t *linux_data);
-        // Set the current estimator
-        void setEstimator(std::shared_ptr<BodyEstimator> estimator);
+        void step();
+        // // Set the current estimator
+        // void setEstimator(std::shared_ptr<BodyEstimator> estimator);
+        // // Set the current controller 
+        // void setController(std::shared_ptr<ControllerBase> controller);
 
     private:
         // ROS timestamp
         ros::Time timestamp_;
+        // Passive Time Synchronizer
+        PassiveTimeSync ts_;
         // Cassie's current state estimate
         CheetahState state_;
+        // Cheetah lcm data queues
+        cheetah_lcm_data_t* cheetah_data_;
+        // Cheetah lcm data queue mtx
+        boost::mutex* cdata_mtx_;
         // Invariant extended Kalman filter for estimating the robot's body state
         std::shared_ptr<BodyEstimator> estimator_;
 };

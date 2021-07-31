@@ -14,9 +14,8 @@
 class CheetahState {
 
     public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         // Default Contructor
-        CheetahState(ros::NodeHandle n);
+        CheetahState() {}
 
     private:
 

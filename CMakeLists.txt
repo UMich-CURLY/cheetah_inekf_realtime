@@ -163,6 +163,9 @@ add_library(cheetah_kinematics ${kinematics_src})
 
 add_library(cheetah_lcm "${PROJECT_SOURCE_DIR}/src/communication/lcm_handler.cpp")
 
+add_library(cheetah_state "${PROJECT_SOURCE_DIR}/src/system/cheetah_state.cpp")
+add_library(cheetah_system "${PROJECT_SOURCE_DIR}/src/system/cheetah_system.cpp")
+
 target_link_libraries(cheetah_lcm cheetah_kinematics ${LCM_LIBRARY})
 
 ## Add cmake target dependencies of the library
@@ -174,13 +177,15 @@ target_link_libraries(cheetah_lcm cheetah_kinematics ${LCM_LIBRARY})
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 
-add_executable(cheetah_controller src/cheetah_controller.cpp )
-target_link_libraries(cheetah_controller
+add_executable(cheetah_estimator src/cheetah_estimator.cpp )
+target_link_libraries(cheetah_estimator
     ${catkin_LIBRARIES}
     ${inekf_LIBRARIES}
     ${Boost_LIBRARIES}
     cheetah_kinematics
     cheetah_lcm
+    cheetah_system
+    cheetah_state
 )
 
 # add_executable(lcm_handler src/communication/lcm_handler.cpp )

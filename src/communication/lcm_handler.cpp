@@ -8,6 +8,7 @@ namespace cheetah_inekf_lcm {
     ROS_DEBUG_STREAM("Receive new imu msg");
     seq_imu_data_++;
 
+    /// TODO: just save imu_t directly into circular queue
     sensor_msgs::Imu imu_msg;
     imu_msg.header.seq = seq_imu_data_;
     imu_msg.header.stamp = ros::Time::now();
@@ -22,7 +23,14 @@ namespace cheetah_inekf_lcm {
     imu_msg.linear_acceleration.x = msg->acc[0];
     imu_msg.linear_acceleration.y = msg->acc[1];
     imu_msg.linear_acceleration.z = msg->acc[2];
-    imu_queue.push_back(imu_msg);
+
+    ROS_INFO("Processed IMU x: %0.4f y: %0.4f z: %0.4f", 
+      imu_msg.linear_acceleration.x,
+      imu_msg.linear_acceleration.y,
+      imu_msg.linear_acceleration.z);
+
+    boost::mutex::scoped_lock lock(*cdata_mtx_);
+    cheetah_data_in->imu_q.push_back(imu_msg);
   }
 
   template <unsigned int ENCODER_DIM>
@@ -52,8 +60,10 @@ namespace cheetah_inekf_lcm {
     kinematics_arr.header.seq = seq_joint_state_;
     kinematics_arr.header.stamp = joint_state_msg.header.stamp;
     kinematics_arr.header.frame_id =  "/cheetah/imu";
-    kinematics_publisher_.publish(kinematics_arr);
-    kin_queue.push_back(kinematics_arr);
+    // kinematics_publisher_.publish(kinematics_arr);
+
+    boost::mutex::scoped_lock lock(*cdata_mtx_);
+    cheetah_data_in->kin_q.push_back(kinematics_arr);
   }
 
   template <unsigned int ENCODER_DIM>
@@ -78,7 +88,9 @@ namespace cheetah_inekf_lcm {
       contacts.push_back(ct);
     }
     contact_msg.contacts = contacts;
-    contact_queue.push_back(contact_msg);
+
+    boost::mutex::scoped_lock lock(*cdata_mtx_);
+    cheetah_data_in->contact_q.push_back(contact_msg);
   }
 
 

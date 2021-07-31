@@ -1,13 +1,10 @@
 #pragma once
 
-// Utility libraries
-#include <boost/circular_buffer.hpp> >
+// Utility types
+#include "utils/cheetah_data_t.hpp"
 
 // ROS related
 #include <ros/ros.h>
-#include "sensor_msgs/Imu.h"
-#include "sensor_msgs/JointState.h"
-#include "inekf_msgs/ContactArray.h"
 #include "communication/kinematics_handler.hpp"
 
 // LCM related
@@ -17,10 +14,12 @@
 #include "lcm-types/contact_t.hpp"
 
 namespace cheetah_inekf_lcm {
+
 template <unsigned int ENCODER_DIM>
 class InEKF_lcm {
   public:
-      InEKF_lcm() : nh_("~") {
+      InEKF_lcm(lcm::LCM& lcm, cheetah_lcm_data_t* cheetah_data_in, boost::mutex* cdata_mtx) : lcm_(lcm), nh_("~"),
+        cheetah_data_in(cheetah_data_in), cdata_mtx_(cdata_mtx) {
       
       ROS_INFO("Cheetah_Lcm ready to initialize...."); 
 	    
@@ -39,12 +38,6 @@ class InEKF_lcm {
       joint_state_publisher_ = nh_.advertise<sensor_msgs::JointState>("joint_state", 10);
       kinematics_publisher_ = nh_.advertise<inekf_msgs::KinematicsArray>("kinematics", 10);
       contact_publisher_ = nh_.advertise<inekf_msgs::ContactArray>("contact", 10);
-
-      //TODO: make size a parameter
-      imu_queue.resize(100);
-      kin_queue.resize(100);
-      contact_queue.resize(100);
-      imu_queue_pos_, kin_queue_pos_, contact_queue_pos_ = 0, 0, 0;
 
       cov_encoders_ = encoder_std*encoder_std*Eigen::Matrix<double,ENCODER_DIM,ENCODER_DIM>::Identity(); 
       cov_prior_ = Eigen::Matrix<double,6,6>::Identity();
@@ -67,11 +60,14 @@ class InEKF_lcm {
                                const contact_t* msg);
   
   private:
+    lcm::LCM lcm_;
     ros::NodeHandle nh_;
     ros::Publisher imu_publisher_;
     ros::Publisher joint_state_publisher_;
     ros::Publisher contact_publisher_;
     ros::Publisher kinematics_publisher_;
+
+    boost::mutex* cdata_mtx_;
 
     Eigen::Matrix<double,ENCODER_DIM,ENCODER_DIM> cov_encoders_;
     Eigen::Matrix<double,6,6> cov_prior_;
@@ -82,10 +78,7 @@ class InEKF_lcm {
     uint64_t seq_joint_state_;
     uint64_t seq_contact_;
 
-    uint32_t imu_queue_pos_, kin_queue_pos_, contact_queue_pos_;
-    boost::circular_buffer<sensor_msgs::Imu> imu_queue;
-    boost::circular_buffer<inekf_msgs::KinematicsArray> kin_queue;
-    boost::circular_buffer<inekf_msgs::ContactArray> contact_queue;
+    cheetah_lcm_data_t* cheetah_data_in;
 };
 
 } // namespace mini_cheetah

@@ -1,4 +1,4 @@
-package cheetah_inekf_ros;
+package cheetah_inekf_lcm;
 
 struct contact_t
 {
