@@ -45,9 +45,9 @@ class InEKF_lcm {
         //Set private variables
         double encoder_std, kinematic_prior_orientation_std, kinematic_prior_position_std;
         std::string project_root_dir;
-        nh_->param<double>("encoder_std", encoder_std, 0.0174533); // 1 deg std
-        nh_->param<double>("kinematic_prior_orientation_std", kinematic_prior_orientation_std, 0.174533); // 10 deg std
-        nh_->param<double>("kinematic_prior_position_std", kinematic_prior_position_std, 0.05); // 5cm std
+        nh_->param<double>("/inekf/encoder_std", encoder_std, 0.0174533); // 1 deg std
+        nh_->param<double>("/inekf/kinematic_prior_orientation_std", kinematic_prior_orientation_std, 0.174533); // 10 deg std
+        nh_->param<double>("/inekf/kinematic_prior_position_std", kinematic_prior_position_std, 0.05); // 5cm std
         nh_->param<bool>("/settings/enable_debug_output", debug_enabled_, false);
         nh_->param<std::string>("/settings/project_root_dir", project_root_dir, "../../../");
 

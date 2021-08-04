@@ -13,8 +13,9 @@ This project is the wrapper of invariant-ekf for MiniCheetah. It takes input fro
     
 ### Running cheetah estimator
 1. cd ~/pathto/catkin_ws
-1. cd ~/pathto/catkin_ws
 2. In a new terminal in the catkin_ws, do catkin_make (perhaps multiple times)
 3. roslaunch cheetah_inekf_lcm cheetah_estimator.launch
 4. source ~/devel/setup.bash
 5. rosrun cheetah_inekf_lcm cheetah_estimator
+
+diff -y ./cheetah_inekf_lcm/tests/kinematics/lcmlog.out ./cheetah_inekf_ros/tests/kinematics/lcmlog.out > diff.txt

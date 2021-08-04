@@ -23,7 +23,7 @@ void CheetahSystem::step() {
             if (/*estimator_->biasInitialized()*/ 1) {
                 //Initialize if a contact is made
                 if (/*state_.getRightContact()==*/1) {
-                    
+                   
                 }
             } else {
                 //Initialize InEKF bias estimate

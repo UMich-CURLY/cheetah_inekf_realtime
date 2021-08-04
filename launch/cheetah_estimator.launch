@@ -4,5 +4,7 @@
 
     <!-- Run cheetah estimator publisher -->
     <rosparam file="$(find cheetah_inekf_lcm)/config/settings.yaml" />
+    <!-- Initialize inEKF params -->
+    <rosparam file="$(find cheetah_inekf_lcm)/config/inekf.yaml" />
   
 </launch>

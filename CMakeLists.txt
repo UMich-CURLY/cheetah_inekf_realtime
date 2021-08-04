@@ -167,14 +167,14 @@ file(GLOB kinematics_src
     "${PROJECT_SOURCE_DIR}/src/kin/*.cpp"
 )
 
-add_library(cheetah_kinematics ${kinematics_src})
+add_library(cheetah_kinematics_lcm ${kinematics_src})
 
-add_library(cheetah_lcm "${PROJECT_SOURCE_DIR}/src/communication/lcm_handler.cpp")
+add_library(cheetah_lcm_handler "${PROJECT_SOURCE_DIR}/src/communication/lcm_handler.cpp")
 
 add_library(cheetah_state "${PROJECT_SOURCE_DIR}/src/system/cheetah_state.cpp")
 add_library(cheetah_system "${PROJECT_SOURCE_DIR}/src/system/cheetah_system.cpp")
 
-target_link_libraries(cheetah_lcm cheetah_kinematics ${LCM_LIBRARY})
+target_link_libraries(cheetah_lcm_handler cheetah_kinematics_lcm ${LCM_LIBRARY})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -190,8 +190,8 @@ target_link_libraries(cheetah_estimator
     ${catkin_LIBRARIES}
     ${inekf_LIBRARIES}
     ${Boost_LIBRARIES}
-    cheetah_kinematics
-    cheetah_lcm
+    cheetah_kinematics_lcm
+    cheetah_lcm_handler
     cheetah_system
     cheetah_state
 )

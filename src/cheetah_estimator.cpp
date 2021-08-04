@@ -31,7 +31,7 @@
 int main(int argc, char **argv)
 {
     // Initialize ROS node
-    ros::init(argc, argv, "cheetah_controller");
+    ros::init(argc, argv, "cheetah_estimator");
     ros::NodeHandle nh;
 
     // Initialize LCM
