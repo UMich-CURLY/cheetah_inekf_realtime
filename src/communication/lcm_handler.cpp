@@ -9,27 +9,27 @@ namespace cheetah_inekf_lcm {
     seq_imu_data_++;
 
     /// TODO: just save imu_t directly into circular queue
-    sensor_msgs::Imu imu_msg;
-    imu_msg.header.seq = seq_imu_data_;
-    imu_msg.header.stamp = ros::Time::now();
-    imu_msg.header.frame_id = "/cheetah/imu";
-    imu_msg.orientation.w = msg->quat[0];
-    imu_msg.orientation.x = msg->quat[1];
-    imu_msg.orientation.y = msg->quat[2];
-    imu_msg.orientation.z = msg->quat[3];
-    imu_msg.angular_velocity.x = msg->omega[0];
-    imu_msg.angular_velocity.y = msg->omega[1];
-    imu_msg.angular_velocity.z = msg->omega[2];
-    imu_msg.linear_acceleration.x = msg->acc[0];
-    imu_msg.linear_acceleration.y = msg->acc[1];
-    imu_msg.linear_acceleration.z = msg->acc[2];
+    ImuMeasurement<float>* imu_msg = new ImuMeasurement<float>();
+    imu_msg->header.seq = seq_imu_data_;
+    imu_msg->header.stamp = ros::Time::now();
+    imu_msg->header.frame_id = "/cheetah/imu";
+    imu_msg->orientation.w = msg->quat[0];
+    imu_msg->orientation.x = msg->quat[1];
+    imu_msg->orientation.y = msg->quat[2];
+    imu_msg->orientation.z = msg->quat[3];
+    imu_msg->angular_velocity.x = msg->omega[0];
+    imu_msg->angular_velocity.y = msg->omega[1];
+    imu_msg->angular_velocity.z = msg->omega[2];
+    imu_msg->linear_acceleration.x = msg->acc[0];
+    imu_msg->linear_acceleration.y = msg->acc[1];
+    imu_msg->linear_acceleration.z = msg->acc[2];
 
     if (debug_enabled_) {
         // ROS_INFO("imu acc x: %0.4f y: %0.4f z: %0.4f\n", imu_msg.linear_acceleration.x,
         //         imu_msg.linear_acceleration.y, imu_msg.linear_acceleration.z);
     }
     boost::mutex::scoped_lock lock(*cdata_mtx_);
-    cheetah_data_in->imu_q.push_back(imu_msg);
+    cheetah_data_in_->imu_q.push_back(imu_msg);
   }
 
   template <unsigned int ENCODER_DIM>
@@ -58,20 +58,20 @@ namespace cheetah_inekf_lcm {
     joint_state_msg.effort = joint_effort;
     joint_state_publisher_.publish(joint_state_msg);
     std_msgs::Header header;
-    inekf_msgs::KinematicsArray kinematics_arr = 
+    inekf_msgs::KinematicsArray* kinematics_arr = 
         KinematicsHandler<ENCODER_DIM>::callback_handler(header, encoder_pos, cov_encoders_, cov_prior_);
 
-    kinematics_arr.header.seq = seq_joint_state_;
-    kinematics_arr.header.stamp = joint_state_msg.header.stamp;
-    kinematics_arr.header.frame_id =  "/cheetah/imu";
+    kinematics_arr->header.seq = seq_joint_state_;
+    kinematics_arr->header.stamp = joint_state_msg.header.stamp;
+    kinematics_arr->header.frame_id =  "/cheetah/imu";
     // kinematics_publisher_.publish(kinematics_arr);
     if (debug_enabled_) {
-        kinematics_debug_ << kinematics_arr << '\n';
-        std::cout << kinematics_arr << '\n';
+        kinematics_debug_ << *kinematics_arr << '\n';
+        std::cout << *kinematics_arr << '\n';
     }
 
     boost::mutex::scoped_lock lock(*cdata_mtx_);
-    cheetah_data_in->kin_q.push_back(kinematics_arr);
+    cheetah_data_in_->kin_q.push_back(kinematics_arr);
   }
 
   template <unsigned int ENCODER_DIM>
@@ -81,10 +81,10 @@ namespace cheetah_inekf_lcm {
     ROS_DEBUG_STREAM("Receive new contact msg");        
     seq_contact_++;
 
-    inekf_msgs::ContactArray contact_msg;
-    contact_msg.header.seq = seq_contact_;
-    contact_msg.header.stamp = ros::Time::now();
-    contact_msg.header.frame_id = "/cheetah/contact";
+    inekf_msgs::ContactArray* contact_msg = new inekf_msgs::ContactArray();
+    contact_msg->header.seq = seq_contact_;
+    contact_msg->header.stamp = ros::Time::now();
+    contact_msg->header.frame_id = "/cheetah/contact";
 
     std::vector<inekf_msgs::Contact> contacts;
 
@@ -95,13 +95,13 @@ namespace cheetah_inekf_lcm {
       ct.indicator =  msg->contact[i] > 0;
       contacts.push_back(ct);
     }
-    contact_msg.contacts = contacts;
+    contact_msg->contacts = contacts;
 
     if (debug_enabled_) {
-        // std::cout << "Contacts " << contact_msg << '\n';
+        // std::cout << "Contacts " << *contact_msg << '\n';
     }
     boost::mutex::scoped_lock lock(*cdata_mtx_);
-    cheetah_data_in->contact_q.push_back(contact_msg);
+    cheetah_data_in_->contact_q.push_back(contact_msg);
   }
 
 

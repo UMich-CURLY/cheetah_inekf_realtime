@@ -3,9 +3,11 @@
 //STL
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 // Utility types
 #include "utils/cheetah_data_t.hpp"
+#include "sensor_msgs/Imu.h"
 
 // ROS related
 #include <ros/ros.h>
@@ -30,7 +32,7 @@ class InEKF_lcm {
     public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     InEKF_lcm(lcm::LCM* lcm, ros::NodeHandle* n, cheetah_lcm_data_t* cheetah_data_in, boost::mutex* cdata_mtx) : 
-        lcm_(lcm), nh_(n), cheetah_data_in(cheetah_data_in), cdata_mtx_(cdata_mtx) {
+        lcm_(lcm), nh_(n), cheetah_data_in_(cheetah_data_in), cdata_mtx_(cdata_mtx) {
         assert(lcm_);  // confirm a nullptr wasn't passed in
         ROS_INFO("Cheetah_Lcm ready to initialize...."); 
 
@@ -101,7 +103,7 @@ class InEKF_lcm {
     uint64_t seq_joint_state_;
     uint64_t seq_contact_;
 
-    cheetah_lcm_data_t* cheetah_data_in;
+    cheetah_lcm_data_t* cheetah_data_in_;
 
     //Debugging
     bool debug_enabled_;

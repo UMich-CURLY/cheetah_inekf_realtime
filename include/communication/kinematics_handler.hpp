@@ -25,7 +25,7 @@ class KinematicsHandler {
         KinematicsHandler() {
         }
 
-        static inekf_msgs::KinematicsArray callback_handler(std_msgs::Header & header,  const Eigen::Matrix<double, ENCODER_DIM, 1> & encoders,
+        static inekf_msgs::KinematicsArray* callback_handler(std_msgs::Header & header,  const Eigen::Matrix<double, ENCODER_DIM, 1> & encoders,
                                                             const Eigen::Matrix<double, ENCODER_DIM, ENCODER_DIM> & cov_encoder,
                                                             const Eigen::Matrix<double, 6,6> & cov_prior) {
             inekf_msgs::Kinematics front_left_foot, front_right_foot, hind_left_foot, hind_right_foot;
@@ -110,11 +110,11 @@ class KinematicsHandler {
                 }
             }
  
-            inekf_msgs::KinematicsArray kinematics_msg;
-            kinematics_msg.frames.push_back(front_right_foot);
-            kinematics_msg.frames.push_back(front_left_foot);
-            kinematics_msg.frames.push_back(hind_right_foot);
-            kinematics_msg.frames.push_back(hind_left_foot);
+            inekf_msgs::KinematicsArray* kinematics_msg = new inekf_msgs::KinematicsArray();
+            kinematics_msg->frames.push_back(front_right_foot);
+            kinematics_msg->frames.push_back(front_left_foot);
+            kinematics_msg->frames.push_back(hind_right_foot);
+            kinematics_msg->frames.push_back(hind_left_foot);
             //kinematic_pub_.publish(kinematics_msg);
 
             return kinematics_msg;

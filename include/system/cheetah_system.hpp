@@ -22,7 +22,7 @@ class CheetahSystem {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         // Default Contructor
-        CheetahSystem(boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_data);
+        CheetahSystem(boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer);
         // Step forward one iteration of the system
         void step();
         // // Set the current estimator
@@ -38,11 +38,15 @@ class CheetahSystem {
         // Cassie's current state estimate
         CheetahState state_;
         // Cheetah lcm data queues
-        cheetah_lcm_data_t* cheetah_data_;
+        cheetah_lcm_data_t* cheetah_buffer_;
         // Cheetah lcm data queue mtx
         boost::mutex* cdata_mtx_;
         // Invariant extended Kalman filter for estimating the robot's body state
         std::shared_ptr<BodyEstimator> estimator_;
+        // Most recent data packet
+        cheetah_lcm_packet_t cheetah_packet_;
+        // Update most recent packet to use
+        void updateCheetahPacket();
 };
 
 #endif // CHEETAHSYSTEM_H
