@@ -15,11 +15,14 @@ class BodyEstimator {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         BodyEstimator();
         bool enabled();
+        void enableFilter();
         void disable();
         bool biasInitialized();
         void initBias();
         void initState();
-        void update(cheetah_lcm_packet_t& cheetah_data, CheetahState& state);
+        void setContacts(CheetahState& state);
+        void propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahState& state);
+        void correctKinematics(CheetahState& state);
         inekf::InEKF getFilter() const;
         inekf::RobotState getState() const;
 

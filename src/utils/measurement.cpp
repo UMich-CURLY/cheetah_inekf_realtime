@@ -17,11 +17,11 @@ using namespace inekf;
 
 // Construct Empty Measurement
 Measurement::Measurement() {
-    t_ = 0;
+    header.stamp = 0;
     type_ = EMPTY;
 }
 // Getters
-double Measurement::getTime() { return t_; }
+double Measurement::getTime() { return header.stamp; }
 MeasurementType Measurement::getType() { return type_; }
 
 // Print measurement

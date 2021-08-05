@@ -42,11 +42,11 @@ class CheetahSystem {
         // Cheetah lcm data queue mtx
         boost::mutex* cdata_mtx_;
         // Invariant extended Kalman filter for estimating the robot's body state
-        std::shared_ptr<BodyEstimator> estimator_;
+        BodyEstimator estimator_;
         // Most recent data packet
         cheetah_lcm_packet_t cheetah_packet_;
         // Update most recent packet to use
-        void updateCheetahPacket();
+        void updateNextPacket();
 };
 
 #endif // CHEETAHSYSTEM_H

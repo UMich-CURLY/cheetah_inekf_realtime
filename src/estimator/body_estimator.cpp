@@ -9,12 +9,41 @@
 #include "Jp_Body_to_HindLeftFoot.h"
 #include "Jp_Body_to_HindRightFoot.h"
 
+BodyEstimator::BodyEstimator() :
+    t_prev_(0), imu_prev_(Eigen::Matrix<double,6,1>::Zero()) {
+
+    // Create private node handle
+    ros::NodeHandle nh("~");
+    // Set noise parameters
+    inekf::NoiseParams params;
+    double std;
+    if (nh.getParam("noise/gyroscope_std", std)) { 
+        params.setGyroscopeNoise(std);
+    }
+    if (nh.getParam("noise/accelerometer_std", std)) { 
+        params.setAccelerometerNoise(std);
+    }
+    if (nh.getParam("noise/gyroscope_bias_std", std)) { 
+        params.setGyroscopeBiasNoise(std);
+    }
+    if (nh.getParam("noise/accelerometer_bias_std", std)) { 
+        params.setAccelerometerBiasNoise(std);
+    }
+    if (nh.getParam("noise/contact_std", std)) { 
+        params.setContactNoise(std);
+    }
+    filter_.setNoiseParams(params);
+    std::cout << "Noise parameters are initialized to: \n";
+    std::cout << filter_.getNoiseParams() << std::endl;
+    // Settings
+    nh.param<bool>("settings/static_bias_initialization", static_bias_initialization_, false);
+}
+
 bool BodyEstimator::enabled() {
     return enabled_;
 }
 
-// Update filter based on sensor outputs
-void BodyEstimator::update(cheetah_lcm_packet_t& cheetah_data, CheetahState& state) {
+void BodyEstimator::propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahState& state) {
     // Extract out current IMU data [w;a]
     Eigen::Matrix<double,6,1> imu;
     imu << cheetah_data.imu_q.angular_velocity.x,
@@ -23,8 +52,31 @@ void BodyEstimator::update(cheetah_lcm_packet_t& cheetah_data, CheetahState& sta
            cheetah_data.imu_q.linear_acceleration.x, 
            cheetah_data.imu_q.linear_acceleration.y, 
            cheetah_data.imu_q.linear_acceleration.z;
-    double t = cheetah_data.t.toSec();
-    
+    double t = cheetah_data.getTime();
+
+    // Propagate state based on IMU and contact data
+    double dt = t - t_prev_;
+    if (dt > 0)
+        filter_.Propagate(imu_prev_, dt); 
+
+    ///TODO: Check if imu strapdown model is correct
+    inekf::RobotState estimate = filter_.getState();
+    Eigen::Vector3d i_p_ib; i_p_ib << -0.0316, 0, 0.08;
+    Eigen::Vector3d w = imu.head<3>() - estimate.getGyroscopeBias(); // Angular velocity without bias
+    Eigen::Matrix3d R = estimate.getRotation(); // no extra rotation needed
+    Eigen::Vector3d p = estimate.getPosition() + R*i_p_ib;
+    Eigen::Vector3d v = estimate.getVelocity() + R*inekf::skew(w)*i_p_ib;
+    state.setBaseRotation(R);
+    state.setBasePosition(p);
+    state.setBaseVelocity(v);
+
+    // Store previous imu data
+    t_prev_ = t;
+    imu_prev_ = imu;
+}
+
+// Assumes state contacts have been updated
+void BodyEstimator::setContacts(CheetahState& state) {
     // Update contact information
     const double CONTACT_THRESHOLD = 1;
     std::vector<std::pair<int,bool>> contacts;
@@ -33,12 +85,10 @@ void BodyEstimator::update(cheetah_lcm_packet_t& cheetah_data, CheetahState& sta
     contacts.push_back(std::pair<int,bool> (2, (state.getRightFrontContact()>=CONTACT_THRESHOLD) ? true:false)); 
     contacts.push_back(std::pair<int,bool> (3, (state.getRightBackContact()>=CONTACT_THRESHOLD) ? true:false)); 
     filter_.setContacts(contacts); // Set new contact states
+}
 
-    // Propagate state based on IMU and contact data
-    double dt = t - t_prev_;
-    if (dt > 0)
-        filter_.Propagate(imu_prev_, dt); 
-
+// Assumes state encoders have been updated
+void BodyEstimator::correctKinematics(CheetahState& state) {
     // Correct state based on kinematics measurements (probably in cheetah inekf ros)
     Eigen::Matrix<double,12,1> encoders = state.getEncoderPositions();
     Eigen::Matrix4d FL = H_Body_to_FrontLeftFoot(encoders); 
@@ -67,29 +117,12 @@ void BodyEstimator::update(cheetah_lcm_packet_t& cheetah_data, CheetahState& sta
     kinematics.push_back(rightFrontFoot);
     kinematics.push_back(rightHindFoot);  
     filter_.CorrectKinematics(kinematics);
+}
 
-    // --- Test abosulte positon contact measurement (z) --- //
-    // Eigen::Vector3d measurement; measurement << 0,0,0; // Measure 0 ground height
-    // Eigen::Matrix3d covariance = 0.01*Eigen::Matrix3d::Identity();
-    // Eigen::Vector3d indices; indices << 0,0,1; // Specify that we are measuring only the z component
-    // if (state.getLeftContact()>=CONTACT_THRESHOLD)
-    //     filter_.CorrectContactPosition(0, measurement, covariance, indices);
-    // if (state.getRightContact()>=CONTACT_THRESHOLD)
-    //     filter_.CorrectContactPosition(1, measurement, covariance, indices);
+bool BodyEstimator::biasInitialized() {
+    return bias_initialized_;
+}
 
-    // Update Cheetah's state (Change from IMU to body frame)
-    ///TODO: Check if imu strapdown model is correct
-    inekf::RobotState estimate = filter_.getState();
-    Eigen::Vector3d i_p_ib; i_p_ib << -0.0316, 0, 0.08;
-    Eigen::Vector3d w = imu.head<3>() - estimate.getGyroscopeBias(); // Angular velocity without bias
-    Eigen::Matrix3d R = estimate.getRotation(); // no extra rotation needed
-    Eigen::Vector3d p = estimate.getPosition() + R*i_p_ib;
-    Eigen::Vector3d v = estimate.getVelocity() + R*inekf::skew(w)*i_p_ib;
-    state.setBaseRotation(R);
-    state.setBasePosition(p);
-    state.setBaseVelocity(v);
-
-    // Store previous imu data
-    t_prev_ = t;
-    imu_prev_ = imu;
+void BodyEstimator::enableFilter() {
+    enabled_ = true;
 }

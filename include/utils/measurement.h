@@ -22,7 +22,7 @@
 #include "InEKF.h"
 #include "tf/transform_listener.h"
 
-enum MeasurementType {EMPTY, IMU, LANDMARK, KINEMATIC, CONTACT};
+enum MeasurementType {EMPTY, IMU, KINEMATIC, CONTACT};
 
 class Measurement {
 
@@ -33,9 +33,10 @@ class Measurement {
 
         struct MeasurementHeader {
             uint64_t seq;
-            ros::Time stamp;
+            double stamp;
             std::string frame_id;
         };
+        MeasurementHeader header;
 
         double getTime();
         MeasurementType getType();
@@ -43,7 +44,6 @@ class Measurement {
         friend std::ostream& operator<<(std::ostream& os, const Measurement& m);  
 
     protected:
-        double t_;
         MeasurementType type_;
 };
 

@@ -11,7 +11,7 @@ namespace cheetah_inekf_lcm {
     /// TODO: just save imu_t directly into circular queue
     ImuMeasurement<float>* imu_msg = new ImuMeasurement<float>();
     imu_msg->header.seq = seq_imu_data_;
-    imu_msg->header.stamp = ros::Time::now();
+    imu_msg->header.stamp = ros::Time::now().toSec();
     imu_msg->header.frame_id = "/cheetah/imu";
     imu_msg->orientation.w = msg->quat[0];
     imu_msg->orientation.x = msg->quat[1];
@@ -57,21 +57,24 @@ namespace cheetah_inekf_lcm {
     joint_state_msg.velocity = joint_velocity;
     joint_state_msg.effort = joint_effort;
     joint_state_publisher_.publish(joint_state_msg);
-    std_msgs::Header header;
-    inekf_msgs::KinematicsArray* kinematics_arr = 
-        KinematicsHandler<ENCODER_DIM>::callback_handler(header, encoder_pos, cov_encoders_, cov_prior_);
 
-    kinematics_arr->header.seq = seq_joint_state_;
-    kinematics_arr->header.stamp = joint_state_msg.header.stamp;
-    kinematics_arr->header.frame_id =  "/cheetah/imu";
+    KinematicsMeasurement* kinematics_ptr = new KinematicsMeasurement();
+    std_msgs::Header header;
+    kinematics_ptr->setKinematicsArray(
+        KinematicsHandler<ENCODER_DIM>::callback_handler(header, encoder_pos, cov_encoders_, cov_prior_)
+    );
+
+    kinematics_ptr->header.seq = seq_joint_state_;
+    kinematics_ptr->header.stamp = joint_state_msg.header.stamp.toSec();
+    kinematics_ptr->header.frame_id =  "/cheetah/imu";
     // kinematics_publisher_.publish(kinematics_arr);
     if (debug_enabled_) {
-        kinematics_debug_ << *kinematics_arr << '\n';
-        std::cout << *kinematics_arr << '\n';
+        kinematics_debug_ << kinematics_ptr->getKinematicsArray() << '\n';
+        std::cout << kinematics_ptr->getKinematicsArray() << '\n';
     }
 
     boost::mutex::scoped_lock lock(*cdata_mtx_);
-    cheetah_data_in_->kin_q.push_back(kinematics_arr);
+    cheetah_data_in_->kin_q.push_back(kinematics_ptr);
   }
 
   template <unsigned int ENCODER_DIM>
@@ -81,10 +84,10 @@ namespace cheetah_inekf_lcm {
     ROS_DEBUG_STREAM("Receive new contact msg");        
     seq_contact_++;
 
-    inekf_msgs::ContactArray* contact_msg = new inekf_msgs::ContactArray();
-    contact_msg->header.seq = seq_contact_;
-    contact_msg->header.stamp = ros::Time::now();
-    contact_msg->header.frame_id = "/cheetah/contact";
+    cheetah_inekf_lcm::ContactsMeasurement* contact_ptr = new ContactsMeasurement();
+    contact_ptr->header.seq = seq_contact_;
+    contact_ptr->header.stamp = ros::Time::now().toSec();
+    contact_ptr->header.frame_id = "/cheetah/contact";
 
     std::vector<inekf_msgs::Contact> contacts;
 
@@ -95,13 +98,13 @@ namespace cheetah_inekf_lcm {
       ct.indicator =  msg->contact[i] > 0;
       contacts.push_back(ct);
     }
-    contact_msg->contacts = contacts;
+    contact_ptr->setContacts(contacts);
 
     if (debug_enabled_) {
-        // std::cout << "Contacts " << *contact_msg << '\n';
+        // std::cout << "Contacts " << contact_ptr->getContacts() << '\n';
     }
     boost::mutex::scoped_lock lock(*cdata_mtx_);
-    cheetah_data_in_->contact_q.push_back(contact_msg);
+    cheetah_data_in_->contact_q.push_back(contact_ptr);
   }
 
 

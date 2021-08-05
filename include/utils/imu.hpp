@@ -23,7 +23,6 @@ namespace cheetah_inekf_lcm {
     template <typename T>
     class ImuMeasurement : public Measurement {
         public:
-            MeasurementHeader header;
             ImuOrientation<T> orientation;
             ImuAngularVelocity<T> angular_velocity;
             ImuLinearAcceleration<T> linear_acceleration;

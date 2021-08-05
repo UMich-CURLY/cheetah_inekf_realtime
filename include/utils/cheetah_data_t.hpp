@@ -1,6 +1,9 @@
 #pragma once
 // Utility libraries
 #include "utils/imu.hpp"
+#include "utils/kinematics.hpp"
+#include "utils/contacts.hpp"
+#include "utils/measurement.h"
 #include "sensor_msgs/JointState.h"
 #include "inekf_msgs/ContactArray.h"
 #include "inekf_msgs/KinematicsArray.h"
@@ -19,13 +22,22 @@ struct cheetah_lcm_data_t {
 
     uint32_t qsz_;
     boost::circular_buffer<cheetah_inekf_lcm::ImuMeasurement<float>* > imu_q;
-    boost::circular_buffer<inekf_msgs::KinematicsArray* > kin_q;
-    boost::circular_buffer<inekf_msgs::ContactArray* > contact_q;
+    boost::circular_buffer<cheetah_inekf_lcm::KinematicsMeasurement* > kin_q;
+    boost::circular_buffer<cheetah_inekf_lcm::ContactsMeasurement* > contact_q;
 };
 
-struct cheetah_lcm_packet_t {
-    ros::Time t;
-    cheetah_inekf_lcm::ImuMeasurement<float> imu_q;
-    inekf_msgs::KinematicsArray kin_q;
-    inekf_msgs::ContactArray contact_q;
+class cheetah_lcm_packet_t {
+    public:
+        cheetah_inekf_lcm::ImuMeasurement<float> imu_q;
+        cheetah_inekf_lcm::KinematicsMeasurement kin_q;
+        cheetah_inekf_lcm::ContactsMeasurement contact_q;
+
+        // Setters
+        inline MeasurementType getType() { return mtype_; }
+        inline double getTime() { return time_; }
+        inline void setType(MeasurementType type) { mtype_ = type; }
+        inline void setTime(double time) { time_ = time; }
+    private:
+        double time_;
+        MeasurementType mtype_;
 };
