@@ -45,10 +45,12 @@ void CheetahSystem::updateCheetahPacket() {
     }
     if (!cheetah_buffer_->kin_q.empty()) {
         cheetah_packet_.kin_q = *cheetah_buffer_->kin_q.front();
+        delete cheetah_buffer_->kin_q.front();
         cheetah_buffer_->kin_q.pop_front();
     }
     if (!cheetah_buffer_->contact_q.empty()) {
         cheetah_packet_.contact_q = *cheetah_buffer_->contact_q.front();
+        delete cheetah_buffer_->contact_q.front();
         cheetah_buffer_->contact_q.pop_front();
     }
 
