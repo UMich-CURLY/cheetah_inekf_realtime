@@ -39,11 +39,17 @@ BodyEstimator::BodyEstimator() :
     nh.param<bool>("settings/static_bias_initialization", static_bias_initialization_, false);
 }
 
-bool BodyEstimator::enabled() {
-    return enabled_;
-}
+
+bool BodyEstimator::biasInitialized() { return bias_initialized_; }
+bool BodyEstimator::enabled() { return enabled_; }
+void BodyEstimator::enableFilter() {enabled_ = true; }
 
 void BodyEstimator::propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahState& state) {
+    // Initialize bias from initial robot condition
+    if (!bias_initialized_) {
+        initBias(cheetah_data);
+    }
+
     // Extract out current IMU data [w;a]
     Eigen::Matrix<double,6,1> imu;
     imu << cheetah_data.imu_q.angular_velocity.x,
@@ -119,10 +125,40 @@ void BodyEstimator::correctKinematics(CheetahState& state) {
     filter_.CorrectKinematics(kinematics);
 }
 
-bool BodyEstimator::biasInitialized() {
-    return bias_initialized_;
-}
-
-void BodyEstimator::enableFilter() {
-    enabled_ = true;
+void BodyEstimator::initBias(cheetah_lcm_packet_t& cheetah_data) {
+    if (!static_bias_initialization_) {
+        bias_initialized_ = true;
+        return;
+    }
+    // Initialize bias based on imu orientation and static assumption
+    if (bias_init_vec_.size() < 2000) {
+        Eigen::Vector3d w, a;
+        w << cheetah_data.imu_q.angular_velocity.x, 
+             cheetah_data.imu_q.angular_velocity.y, 
+             cheetah_data.imu_q.angular_velocity.z;
+        a << cheetah_data.imu_q.linear_acceleration.x,
+             cheetah_data.imu_q.linear_acceleration.y,
+             cheetah_data.imu_q.linear_acceleration.z;
+        Eigen::Quaternion<double> quat(cheetah_data.imu_q.orientation.w, 
+                                       cheetah_data.imu_q.orientation.x,
+                                       cheetah_data.imu_q.orientation.y,
+                                       cheetah_data.imu_q.orientation.z); 
+        Eigen::Matrix3d R = quat.toRotationMatrix();
+        Eigen::Vector3d g; g << 0,0,-9.81;
+        a = (R.transpose()*(R*a + g)).eval();
+        Eigen::Matrix<double,6,1> v; 
+        v << w(0),w(1),w(2),a(0),a(1),a(2);
+        bias_init_vec_.push_back(v); // Store imu data with gravity removed
+    } else {
+        // Compute average bias of stored data
+        Eigen::Matrix<double,6,1> avg = Eigen::Matrix<double,6,1>::Zero();
+        for (int i=0; i<bias_init_vec_.size(); ++i) {
+            avg = (avg + bias_init_vec_[i]).eval();
+        }
+        avg = (avg/bias_init_vec_.size()).eval();
+        std::cout << "IMU bias initialized to: " << avg.transpose() << std::endl;
+        bg0_ = avg.head<3>();
+        ba0_ = avg.tail<3>();
+        bias_initialized_ = true;
+    }
 }

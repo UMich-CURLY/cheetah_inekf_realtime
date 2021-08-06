@@ -18,7 +18,7 @@ class BodyEstimator {
         void enableFilter();
         void disable();
         bool biasInitialized();
-        void initBias();
+        void initBias(cheetah_lcm_packet_t& cheetah_data);
         void initState();
         void setContacts(CheetahState& state);
         void propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahState& state);

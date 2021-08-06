@@ -9,7 +9,7 @@ namespace cheetah_inekf_lcm {
     seq_imu_data_++;
 
     /// TODO: just save imu_t directly into circular queue
-    ImuMeasurement<float>* imu_msg = new ImuMeasurement<float>();
+    ImuMeasurement<double>* imu_msg = new ImuMeasurement<double>();
     imu_msg->header.seq = seq_imu_data_;
     imu_msg->header.stamp = ros::Time::now().toSec();
     imu_msg->header.frame_id = "/cheetah/imu";
@@ -39,10 +39,7 @@ namespace cheetah_inekf_lcm {
     ROS_DEBUG_STREAM("Receive new joint_state msg");    
     seq_joint_state_++;
 
-    sensor_msgs::JointState joint_state_msg;
-    joint_state_msg.header.seq = seq_joint_state_;
-    joint_state_msg.header.stamp = ros::Time::now();
-    // joint_state_msg.header.frame_id = "/cheetah/joint_state";
+    KinematicsMeasurement<double>* kinematics_ptr = new KinematicsMeasurement<double>();
     std::vector<double> joint_position(ENCODER_DIM);
     std::copy(msg->q, msg->q+ENCODER_DIM, joint_position.begin());
     std::vector<double> joint_velocity(ENCODER_DIM);
@@ -52,20 +49,28 @@ namespace cheetah_inekf_lcm {
     Eigen::Matrix<double, ENCODER_DIM, 1> encoder_pos;
     for (int j = 0; j < ENCODER_DIM; j++)
         encoder_pos(j) = joint_position[j];
+    kinematics_ptr->position = joint_position;
+    kinematics_ptr->velocity = joint_velocity;
+    kinematics_ptr->effort = joint_effort;
 
-    joint_state_msg.position = joint_position;
-    joint_state_msg.velocity = joint_velocity;
-    joint_state_msg.effort = joint_effort;
-    joint_state_publisher_.publish(joint_state_msg);
+    if (debug_enabled_) {
+        sensor_msgs::JointState joint_state_msg;
+        joint_state_msg.header.seq = seq_joint_state_;
+        joint_state_msg.header.stamp = ros::Time::now();
+        joint_state_msg.position = joint_position;
+        joint_state_msg.velocity = joint_velocity;
+        joint_state_msg.effort = joint_effort;
+        joint_state_publisher_.publish(joint_state_msg);
+        joint_state_msg.header.frame_id = "/cheetah/joint_state";
+    }
 
-    KinematicsMeasurement* kinematics_ptr = new KinematicsMeasurement();
     std_msgs::Header header;
     kinematics_ptr->setKinematicsArray(
         KinematicsHandler<ENCODER_DIM>::callback_handler(header, encoder_pos, cov_encoders_, cov_prior_)
     );
 
     kinematics_ptr->header.seq = seq_joint_state_;
-    kinematics_ptr->header.stamp = joint_state_msg.header.stamp.toSec();
+    kinematics_ptr->header.stamp = ros::Time::now().toSec();
     kinematics_ptr->header.frame_id =  "/cheetah/imu";
     // kinematics_publisher_.publish(kinematics_arr);
     if (debug_enabled_) {

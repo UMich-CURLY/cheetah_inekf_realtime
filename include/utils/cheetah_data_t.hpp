@@ -21,15 +21,15 @@ struct cheetah_lcm_data_t {
     }
 
     uint32_t qsz_;
-    boost::circular_buffer<cheetah_inekf_lcm::ImuMeasurement<float>* > imu_q;
-    boost::circular_buffer<cheetah_inekf_lcm::KinematicsMeasurement* > kin_q;
+    boost::circular_buffer<cheetah_inekf_lcm::ImuMeasurement<double>* > imu_q;
+    boost::circular_buffer<cheetah_inekf_lcm::KinematicsMeasurement<double>* > kin_q;
     boost::circular_buffer<cheetah_inekf_lcm::ContactsMeasurement* > contact_q;
 };
 
 class cheetah_lcm_packet_t {
     public:
-        cheetah_inekf_lcm::ImuMeasurement<float> imu_q;
-        cheetah_inekf_lcm::KinematicsMeasurement kin_q;
+        cheetah_inekf_lcm::ImuMeasurement<double> imu_q;
+        cheetah_inekf_lcm::KinematicsMeasurement<double> kin_q;
         cheetah_inekf_lcm::ContactsMeasurement contact_q;
 
         // Setters

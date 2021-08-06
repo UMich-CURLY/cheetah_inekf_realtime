@@ -4,6 +4,7 @@
 #include <string>
 
 namespace cheetah_inekf_lcm {
+    template <typename T>
     class KinematicsMeasurement : public Measurement {
         public:
             // Construct KINEMATICS measurement
@@ -19,6 +20,9 @@ namespace cheetah_inekf_lcm {
                 return kin_arr;
             }
 
+            std::vector<T> position;
+            std::vector<T> velocity;
+            std::vector<T> effort;
         private:
             inekf_msgs::KinematicsArray kin_arr;
     };

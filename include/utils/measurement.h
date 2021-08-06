@@ -48,8 +48,8 @@ class Measurement {
 };
 
 struct MeasurementCompare {
-  bool operator()(const std::shared_ptr<Measurement> lhs, const std::shared_ptr<Measurement> rhs) const {
-    return lhs->getTime() > rhs->getTime();
+  bool operator()(Measurement& lhs, Measurement& rhs) const {
+    return lhs.getTime() > rhs.getTime();
   }
 };
 

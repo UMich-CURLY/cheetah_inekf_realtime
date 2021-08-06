@@ -28,19 +28,21 @@ void CheetahSystem::step() {
                 delete cheetah_buffer_->imu_q.front();
                 cheetah_buffer_->imu_q.pop_front();
                 cdata_mtx_->unlock();
-                //
+                // Updated InEKF and initializes bias from first imu measurement
                 estimator_.propagateIMU(cheetah_packet_, state_);
                 break;
             }
             case KINEMATIC: {
-                cdata_mtx_->lock();
-                cheetah_packet_.kin_q = *cheetah_buffer_->kin_q.front();
-                delete cheetah_buffer_->kin_q.front();
-                cheetah_buffer_->kin_q.pop_front();
-                cdata_mtx_->unlock();
-                ///TODO: Add function for updating state with kinematics
-
-                estimator_.correctKinematics(state_);
+                if (estimator_.biasInitialized()) {
+                    cdata_mtx_->lock();
+                    cheetah_packet_.kin_q = *cheetah_buffer_->kin_q.front();
+                    delete cheetah_buffer_->kin_q.front();
+                    cheetah_buffer_->kin_q.pop_front();
+                    cdata_mtx_->unlock();
+                    ///TODO: Add function for updating state with kinematics
+                    
+                    estimator_.correctKinematics(state_);
+                }
                 break;
             } 
             case CONTACT: {
