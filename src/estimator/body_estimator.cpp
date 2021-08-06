@@ -52,12 +52,12 @@ void BodyEstimator::propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahStat
 
     // Extract out current IMU data [w;a]
     Eigen::Matrix<double,6,1> imu;
-    imu << cheetah_data.imu_q.angular_velocity.x,
-           cheetah_data.imu_q.angular_velocity.y, 
-           cheetah_data.imu_q.angular_velocity.z,
-           cheetah_data.imu_q.linear_acceleration.x, 
-           cheetah_data.imu_q.linear_acceleration.y, 
-           cheetah_data.imu_q.linear_acceleration.z;
+    imu << cheetah_data.imu.angular_velocity.x,
+           cheetah_data.imu.angular_velocity.y, 
+           cheetah_data.imu.angular_velocity.z,
+           cheetah_data.imu.linear_acceleration.x, 
+           cheetah_data.imu.linear_acceleration.y, 
+           cheetah_data.imu.linear_acceleration.z;
     double t = cheetah_data.getTime();
 
     // Propagate state based on IMU and contact data
@@ -87,9 +87,9 @@ void BodyEstimator::setContacts(CheetahState& state) {
     const double CONTACT_THRESHOLD = 1;
     std::vector<std::pair<int,bool>> contacts;
     contacts.push_back(std::pair<int,bool> (0, (state.getLeftFrontContact()>=CONTACT_THRESHOLD) ? true:false)); 
-    contacts.push_back(std::pair<int,bool> (1, (state.getLeftBackContact()>=CONTACT_THRESHOLD) ? true:false)); 
+    contacts.push_back(std::pair<int,bool> (1, (state.getLeftHindContact()>=CONTACT_THRESHOLD) ? true:false)); 
     contacts.push_back(std::pair<int,bool> (2, (state.getRightFrontContact()>=CONTACT_THRESHOLD) ? true:false)); 
-    contacts.push_back(std::pair<int,bool> (3, (state.getRightBackContact()>=CONTACT_THRESHOLD) ? true:false)); 
+    contacts.push_back(std::pair<int,bool> (3, (state.getRightHindContact()>=CONTACT_THRESHOLD) ? true:false)); 
     filter_.setContacts(contacts); // Set new contact states
 }
 
@@ -133,16 +133,16 @@ void BodyEstimator::initBias(cheetah_lcm_packet_t& cheetah_data) {
     // Initialize bias based on imu orientation and static assumption
     if (bias_init_vec_.size() < 2000) {
         Eigen::Vector3d w, a;
-        w << cheetah_data.imu_q.angular_velocity.x, 
-             cheetah_data.imu_q.angular_velocity.y, 
-             cheetah_data.imu_q.angular_velocity.z;
-        a << cheetah_data.imu_q.linear_acceleration.x,
-             cheetah_data.imu_q.linear_acceleration.y,
-             cheetah_data.imu_q.linear_acceleration.z;
-        Eigen::Quaternion<double> quat(cheetah_data.imu_q.orientation.w, 
-                                       cheetah_data.imu_q.orientation.x,
-                                       cheetah_data.imu_q.orientation.y,
-                                       cheetah_data.imu_q.orientation.z); 
+        w << cheetah_data.imu.angular_velocity.x, 
+             cheetah_data.imu.angular_velocity.y, 
+             cheetah_data.imu.angular_velocity.z;
+        a << cheetah_data.imu.linear_acceleration.x,
+             cheetah_data.imu.linear_acceleration.y,
+             cheetah_data.imu.linear_acceleration.z;
+        Eigen::Quaternion<double> quat(cheetah_data.imu.orientation.w, 
+                                       cheetah_data.imu.orientation.x,
+                                       cheetah_data.imu.orientation.y,
+                                       cheetah_data.imu.orientation.z); 
         Eigen::Matrix3d R = quat.toRotationMatrix();
         Eigen::Vector3d g; g << 0,0,-9.81;
         a = (R.transpose()*(R*a + g)).eval();

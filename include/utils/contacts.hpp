@@ -19,6 +19,14 @@ namespace cheetah_inekf_lcm {
                 return contacts_arr.contacts;
             }
 
+            // const inekf_msgs::Contact& getContact(int index) const {
+            //     return contacts_arr.contacts[index];
+            // }
+
+            const inekf_msgs::Contact &operator[](int index) const {
+                return contacts_arr.contacts[index];
+            }
+
             const inekf_msgs::ContactArray& getContactArray() {
                 return contacts_arr;
             }

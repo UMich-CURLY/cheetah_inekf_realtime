@@ -1,100 +1,111 @@
 #pragma once
+#ifndef CHEETAHSTATE_H
+#define CHEETAHSTATE_H
 
-#include <Eigen/Dense>
+//C Libraries
+#include <stdint.h>
+
 #include <iostream>
+#include <memory>
+
+//External Libraries
+#include <Eigen/Dense>
+#include "ros/ros.h"
+
+//Cheetah Libraries
 #include "utils/cheetah_data_t.hpp"
+#include "utils/utils.hpp"
+// #include "RosPublisher.h"
+// #include "PassiveTimeSync.h"
 
 class CheetahState {
-
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-        CheetahState() {}
-//         CassieState(const Eigen::Matrix<double,20,1>& q, const Eigen::Matrix<double,20,1>& dq, bool computeContacts = true);
-//         CassieState(const cassie_slrt_data_t *slrt_data, bool computeContacts = true);
+        CheetahState();
+//          CheetahState(const Eigen::Matrix<double,18,1>& q, const Eigen::Matrix<double,18,1>& dq, bool computeContacts = true);
+        CheetahState(const cheetah_lcm_packet_t& cheetah_data);
 
-//         void set(const Eigen::Matrix<double,20,1>& q, const Eigen::Matrix<double,20,1>& dq, bool computeContacts = true);
-//         void set(const cassie_slrt_data_t *slrt_data, bool computeContacts = true);
+//         void set(const Eigen::Matrix<double,18,1>& q, const Eigen::Matrix<double,18,1>& dq, bool computeContacts = true);
+        void set(const cheetah_lcm_packet_t& cheetah_data);
         void setBaseRotation(const Eigen::Matrix3d& R);
         void setBasePosition(const Eigen::Vector3d& p);
         void setBaseVelocity(const Eigen::Vector3d& v);
 //         void setMotorPositions(const Eigen::Matrix<double,10,1>& qM);
 //         void setMotorVelocities(const Eigen::Matrix<double,10,1>& dqM);
-//         void clear();
+        void clear();
 
-//         Eigen::Matrix<double,20,1> q() const;
-//         Eigen::Matrix<double,20,1> dq() const;
-//         Eigen::Vector3d getPosition() const;
-//         Eigen::Quaternion<double> getQuaternion() const;
-//         Eigen::Matrix3d getRotation() const;
-//         Eigen::Vector3d getEulerAngles() const;
-//         Eigen::Vector3d getEulerRates() const;
-        Eigen::Matrix<double, 12, 1> getEncoderPositions();
-//         Eigen::Matrix<double,14,1> getEncoderVelocities() const;
+        Eigen::Matrix<double,18,1> q() const;
+        Eigen::Matrix<double,18,1> dq() const;
+        Eigen::Vector3d getPosition() const;
+        Eigen::Quaternion<double> getQuaternion() const;
+        Eigen::Matrix3d getRotation() const;
+        Eigen::Vector3d getEulerAngles() const;
+        Eigen::Vector3d getEulerRates() const;
+        Eigen::Matrix<double, 12, 1> getEncoderPositions() const;
+        Eigen::Matrix<double,12,1> getEncoderVelocities() const;
 //         Eigen::Matrix<double,10,1> getMotorPositions() const;
 //         Eigen::Matrix<double,10,1> getMotorVelocities() const;
 //         Eigen::Matrix<double,4,1> getGRF() const;
-        double getLeftFrontContact() const;
-        double getLeftBackContact() const;
-        double getRightFrontContact() const;
-        double getRightBackContact() const;
-//         Eigen::Vector3d getAngularVelocity() const;
-//         Eigen::Vector3d getKinematicVelocity() const;
-//         Eigen::Vector3d getBodyVelocity() const;
-//         double x() const;
-//         double y() const;
-//         double z() const;
-//         double yaw() const;
-//         double pitch() const;
-//         double roll() const;
-//         // double leftHipAbduction() const;
-//         // double leftHipRotation() const;
-//         // double leftHipFlexion() const;
+        uint8_t getLeftFrontContact() const;
+        uint8_t getLeftHindContact() const;
+        uint8_t getRightFrontContact() const;
+        uint8_t getRightHindContact() const;
+        Eigen::Vector3d getAngularVelocity() const;
+        Eigen::Vector3d getKinematicVelocity() const;
+        Eigen::Vector3d getBodyVelocity() const;
         
-//         /// SEARCH:
-//         // enum {
-//         //     left_front     
-//         //     right_front   
-//         // };
+        // Extract robot pose:
+        double x() const;
+        double y() const;
+        double z() const;
+        double yaw() const;
+        double pitch() const;
+        double roll() const;
+        // Extract robot joint values:
+        double rightFrontMotor1() const;
+        double rightFrontMotor2() const;
+        double rightFrontMotor3() const;
+        double leftFrontMotor1() const;
+        double leftFrontMotor2() const;
+        double leftFrontMotor3() const;
+        double rightHindMotor1() const;
+        double rightHindMotor2() const;
+        double rightHindMotor3() const;
+        double leftHindMotor1() const;
+        double leftHindMotor2() const;
+        double leftHindMotor3() const;
 
-//         double leftKnee() const;
-//         double leftKneeSpring() const;
-//         double leftAnkle() const;
-//         double leftToePitch() const;
-//         // double rightHipAbduction() const;
-//         // double rightHipRotation() const;
-//         // double rightHipFlexion() const;
-//         double rightKnee() const;
-//         double rightKneeSpring() const;
-//         double rightAnkle() const;
-//         double rightToePitch() const;
-//         double dx() const;
-//         double dy() const;
-//         double dz() const;
-//         double dyaw() const;
-//         double dpitch() const;
-//         double droll() const;
-//         double dleftHipAbduction() const;
-//         double dleftHipRotation() const;
-//         double dleftHipFlexion() const;
-//         double dleftKnee() const;
-//         double dleftKneeSpring() const;
-//         double dleftAnkle() const;
-//         double dleftToePitch() const;
-//         double drightHipAbduction() const;
-//         double drightHipRotation() const;
-//         double drightHipFlexion() const;
-//         double drightKnee() const;
-//         double drightKneeSpring() const;
-//         double drightAnkle() const;
-//         double drightToePitch() const;
+        // Extract robot velocity:
+        double dx() const;
+        double dy() const;
+        double dz() const;
+        double dyaw() const;
+        double dpitch() const;
+        double droll() const;
+        // Extract robot joint velocities:
+        double drightFrontMotor1() const;
+        double drightFrontMotor2() const;
+        double drightFrontMotor3() const;
+        double dleftFrontMotor1() const;
+        double dleftFrontMotor2() const;
+        double dleftFrontMotor3() const;
+        double drightHindMotor1() const;
+        double drightHindMotor2() const;
+        double drightHindMotor3() const;
+        double dleftHindMotor1() const;
+        double dleftHindMotor2() const;
+        double dleftHindMotor3() const;
 
-//         friend std::ostream& operator<<(std::ostream& os, const CassieState& obj);  
+        friend std::ostream& operator<<(std::ostream& os, const  CheetahState& obj);  
 
     private:
-        Eigen::Matrix<double, 20,1> q_;
-        Eigen::Matrix<double, 20,1> dq_;
-        Eigen::Matrix<double,4,1> GRF_;
-        double left_contact_;
-        double right_contact_;
-        void EstimateContacts();
+        Eigen::Matrix<double, 18,1> q_;
+        Eigen::Matrix<double, 18,1> dq_;
+        Eigen::Matrix<double,4,1> GRF_; //!< ground reaction force
+        uint8_t left_front_contact_;
+        uint8_t left_hind_contact_;
+        uint8_t right_front_contact_;
+        uint8_t right_hind_contact_;
 };
+
+#endif

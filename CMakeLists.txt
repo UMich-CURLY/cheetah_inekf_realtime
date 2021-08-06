@@ -172,6 +172,7 @@ add_library(cheetah_kinematics_lcm ${kinematics_src})
 add_library(cheetah_lcm_handler "${PROJECT_SOURCE_DIR}/src/communication/lcm_handler.cpp")
 
 add_library(cheetah_measurement "${PROJECT_SOURCE_DIR}/src/utils/measurement.cpp")
+add_library(utils "${PROJECT_SOURCE_DIR}/src/utils/utils.cpp")
 add_library(cheetah_state "${PROJECT_SOURCE_DIR}/src/system/cheetah_state.cpp")
 add_library(cheetah_system "${PROJECT_SOURCE_DIR}/src/system/cheetah_system.cpp")
 add_library(body_estimator "${PROJECT_SOURCE_DIR}/src/estimator/body_estimator.cpp")
@@ -193,6 +194,7 @@ target_link_libraries(cheetah_estimator
     ${inekf_LIBRARIES}
     ${Boost_LIBRARIES}
     cheetah_measurement
+    utils
     cheetah_kinematics_lcm
     cheetah_lcm_handler
     cheetah_system

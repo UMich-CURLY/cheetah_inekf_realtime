@@ -28,9 +28,9 @@ struct cheetah_lcm_data_t {
 
 class cheetah_lcm_packet_t {
     public:
-        cheetah_inekf_lcm::ImuMeasurement<double> imu_q;
-        cheetah_inekf_lcm::KinematicsMeasurement<double> kin_q;
-        cheetah_inekf_lcm::ContactsMeasurement contact_q;
+        cheetah_inekf_lcm::ImuMeasurement<double> imu;
+        cheetah_inekf_lcm::KinematicsMeasurement<double> kin;
+        cheetah_inekf_lcm::ContactsMeasurement contact;
 
         // Setters
         inline MeasurementType getType() { return mtype_; }

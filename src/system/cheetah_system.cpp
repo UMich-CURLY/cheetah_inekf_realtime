@@ -24,7 +24,7 @@ void CheetahSystem::step() {
             }
             case IMU: {
                 cdata_mtx_->lock();
-                cheetah_packet_.imu_q = *cheetah_buffer_->imu_q.front();
+                cheetah_packet_.imu = *cheetah_buffer_->imu_q.front();
                 delete cheetah_buffer_->imu_q.front();
                 cheetah_buffer_->imu_q.pop_front();
                 cdata_mtx_->unlock();
@@ -35,7 +35,7 @@ void CheetahSystem::step() {
             case KINEMATIC: {
                 if (estimator_.biasInitialized()) {
                     cdata_mtx_->lock();
-                    cheetah_packet_.kin_q = *cheetah_buffer_->kin_q.front();
+                    cheetah_packet_.kin = *cheetah_buffer_->kin_q.front();
                     delete cheetah_buffer_->kin_q.front();
                     cheetah_buffer_->kin_q.pop_front();
                     cdata_mtx_->unlock();
@@ -47,7 +47,7 @@ void CheetahSystem::step() {
             } 
             case CONTACT: {
                 cdata_mtx_->lock();
-                cheetah_packet_.contact_q = *cheetah_buffer_->contact_q.front();
+                cheetah_packet_.contact = *cheetah_buffer_->contact_q.front();
                 delete cheetah_buffer_->contact_q.front();
                 cheetah_buffer_->contact_q.pop_front();
                 cdata_mtx_->unlock();

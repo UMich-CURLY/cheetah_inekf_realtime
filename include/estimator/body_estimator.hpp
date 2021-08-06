@@ -1,11 +1,11 @@
+#pragma once
 #ifndef BODYESTIMATOR_H
 #define BODYESTIMATOR_H
-
 
 #include <Eigen/Dense>
 #include <vector>
 #include "ros/ros.h"
-#include "utils/imu.hpp"
+#include "utils/cheetah_data_t.hpp"
 #include "system/cheetah_state.hpp"
 #include "InEKF.h"
 
