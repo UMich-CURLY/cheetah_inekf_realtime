@@ -21,7 +21,9 @@ Measurement::Measurement() {
     type_ = EMPTY;
 }
 // Getters
-double Measurement::getTime() { return header.stamp; }
+double Measurement::getTime() {   
+    return header.stamp; 
+}
 MeasurementType Measurement::getType() { return type_; }
 
 // Print measurement

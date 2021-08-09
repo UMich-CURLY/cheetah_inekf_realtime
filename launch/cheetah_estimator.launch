@@ -6,5 +6,8 @@
     <rosparam file="$(find cheetah_inekf_lcm)/config/settings.yaml" />
     <!-- Initialize inEKF params -->
     <rosparam file="$(find cheetah_inekf_lcm)/config/inekf.yaml" />
-  
+    <!-- Initialize inEKF noise -->
+    <rosparam file="$(find cheetah_inekf_lcm)/config/noise.yaml" />
+    <!-- Initialize inEKF prior -->
+    <rosparam file="$(find cheetah_inekf_lcm)/config/prior.yaml" />
 </launch>

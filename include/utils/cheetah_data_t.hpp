@@ -9,21 +9,16 @@
 #include "inekf_msgs/KinematicsArray.h"
 
 #include <memory>
+#include <queue>
 
 #include <boost/circular_buffer.hpp>
 
 struct cheetah_lcm_data_t {
     cheetah_lcm_data_t() {}
-    cheetah_lcm_data_t(uint32_t qsz): qsz_(qsz) {
-        imu_q.resize(qsz_);
-        kin_q.resize(qsz_);
-        contact_q.resize(qsz_);
-    }
 
-    uint32_t qsz_;
-    boost::circular_buffer<cheetah_inekf_lcm::ImuMeasurement<double>* > imu_q;
-    boost::circular_buffer<cheetah_inekf_lcm::KinematicsMeasurement<double>* > kin_q;
-    boost::circular_buffer<cheetah_inekf_lcm::ContactsMeasurement* > contact_q;
+    std::queue<cheetah_inekf_lcm::ImuMeasurement<double>* > imu_q;
+    std::queue<cheetah_inekf_lcm::KinematicsMeasurement<double>* > kin_q;
+    std::queue<cheetah_inekf_lcm::ContactsMeasurement* > contact_q;
 };
 
 class cheetah_lcm_packet_t {
@@ -31,12 +26,12 @@ class cheetah_lcm_packet_t {
         cheetah_inekf_lcm::ImuMeasurement<double> imu;
         cheetah_inekf_lcm::KinematicsMeasurement<double> kin;
         cheetah_inekf_lcm::ContactsMeasurement contact;
-
+  
         // Setters
-        inline MeasurementType getType() { return mtype_; }
-        inline double getTime() { return time_; }
-        inline void setType(MeasurementType type) { mtype_ = type; }
-        inline void setTime(double time) { time_ = time; }
+        MeasurementType getType() { return mtype_; }
+        double getTime() { return time_; }
+        void setType(MeasurementType type) { mtype_ = type; }
+        void setTime(double time) { time_ = time; }
     private:
         double time_;
         MeasurementType mtype_;

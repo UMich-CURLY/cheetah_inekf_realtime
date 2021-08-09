@@ -8,6 +8,8 @@
 #include "utils/cheetah_data_t.hpp"
 #include "system/cheetah_state.hpp"
 #include "InEKF.h"
+// #include "visualization_msgs/MarkerArray.h"
+// #include "inekf_msgs/State.h"
 
 class BodyEstimator {
 
@@ -25,12 +27,16 @@ class BodyEstimator {
         void correctKinematics(CheetahState& state);
         inekf::InEKF getFilter() const;
         inekf::RobotState getState() const;
+        void publish(double time, std::string map_frame_id, uint32_t seq);
 
     private:
         inekf::InEKF filter_;
         bool enabled_ = false;
         bool bias_initialized_ = false;
         bool static_bias_initialization_ = false;
+        bool estimator_debug_enabled_ = false;
+        bool publish_visualization_markers_ = false;
+        ros::Publisher visualization_pub_;
         std::vector<Eigen::Matrix<double,6,1>,Eigen::aligned_allocator<Eigen::Matrix<double,6,1>>> bias_init_vec_;
         Eigen::Vector3d bg0_ = Eigen::Vector3d::Zero();
         Eigen::Vector3d ba0_ = Eigen::Vector3d::Zero();

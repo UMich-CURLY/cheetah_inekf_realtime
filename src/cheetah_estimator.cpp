@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     // Threading
     boost::mutex cdata_mtx;
 
-    cheetah_lcm_data_t cheetah_input_data(100);
+    cheetah_lcm_data_t cheetah_input_data;
     cheetah_inekf_lcm::InEKF_lcm<12> lcm_publisher_node(&lcm, &nh, &cheetah_input_data, &cdata_mtx);
 
     // Set noise parameters
@@ -59,6 +59,7 @@ int main(int argc, char **argv)
     bool received_data = true;
     while (lcm.handle() == 0 && ros::ok())
     {
+        system->step();
         ros::spinOnce();
     }
 

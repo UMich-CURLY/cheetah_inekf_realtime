@@ -25,17 +25,17 @@
 enum MeasurementType {EMPTY, IMU, KINEMATIC, CONTACT};
 
 class Measurement {
+    struct MeasurementHeader {
+        uint64_t seq;
+        double stamp;
+        std::string frame_id;
+    };
 
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         Measurement();
         virtual ~Measurement() = default;
 
-        struct MeasurementHeader {
-            uint64_t seq;
-            double stamp;
-            std::string frame_id;
-        };
         MeasurementHeader header;
 
         double getTime();

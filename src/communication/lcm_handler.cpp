@@ -29,7 +29,7 @@ namespace cheetah_inekf_lcm {
         //         imu_msg.linear_acceleration.y, imu_msg.linear_acceleration.z);
     }
     boost::mutex::scoped_lock lock(*cdata_mtx_);
-    cheetah_data_in_->imu_q.push_back(imu_msg);
+    cheetah_data_in_->imu_q.push(imu_msg);
   }
 
   template <unsigned int ENCODER_DIM>
@@ -71,7 +71,7 @@ namespace cheetah_inekf_lcm {
 
     kinematics_ptr->header.seq = seq_joint_state_;
     kinematics_ptr->header.stamp = ros::Time::now().toSec();
-    kinematics_ptr->header.frame_id =  "/cheetah/imu";
+    kinematics_ptr->header.frame_id =  "/cheetah/joint_state";
     // kinematics_publisher_.publish(kinematics_arr);
     if (debug_enabled_) {
         kinematics_debug_ << kinematics_ptr->getKinematicsArray() << '\n';
@@ -79,7 +79,7 @@ namespace cheetah_inekf_lcm {
     }
 
     boost::mutex::scoped_lock lock(*cdata_mtx_);
-    cheetah_data_in_->kin_q.push_back(kinematics_ptr);
+    cheetah_data_in_->kin_q.push(kinematics_ptr);
   }
 
   template <unsigned int ENCODER_DIM>
@@ -91,7 +91,7 @@ namespace cheetah_inekf_lcm {
 
     cheetah_inekf_lcm::ContactsMeasurement* contact_ptr = new ContactsMeasurement();
     contact_ptr->header.seq = seq_contact_;
-    contact_ptr->header.stamp = ros::Time::now().toSec();
+    contact_ptr->header.stamp = msg->timestamp;
     contact_ptr->header.frame_id = "/cheetah/contact";
 
     std::vector<inekf_msgs::Contact> contacts;
@@ -109,7 +109,7 @@ namespace cheetah_inekf_lcm {
         // std::cout << "Contacts " << contact_ptr->getContacts() << '\n';
     }
     boost::mutex::scoped_lock lock(*cdata_mtx_);
-    cheetah_data_in_->contact_q.push_back(contact_ptr);
+    cheetah_data_in_->contact_q.push(contact_ptr);
   }
 
 

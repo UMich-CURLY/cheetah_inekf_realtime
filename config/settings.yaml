@@ -1,5 +1,5 @@
 settings:
-  static_bias_initialization: false
+  static_bias_initialization: true
   initialize_state_from_first_observation: false
   imu_topic: "/lcm_publisher_node/imu"
   map_frame_id : "/odom"
@@ -12,5 +12,6 @@ settings:
   flat_ground: false
   kinematics_topic: "/lcm_publisher_node/kinematics"
   contact_topic: "/lcm_publisher_node/contact"
-  enable_debug_output: true
+  enable_debug_output: false
+  enable_estimator_output: true
   project_root_dir: "/home/arthuzh/CURLY/catkin_ws/src/cheetah_inekf_lcm"

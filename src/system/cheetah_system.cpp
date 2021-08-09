@@ -5,6 +5,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/circular_buffer.hpp>
 
+#include <vector>
 #include <numeric>
 
 CheetahSystem::CheetahSystem(boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer): 
@@ -16,7 +17,6 @@ void CheetahSystem::step() {
 
     //Set state using encoder data todo: create state matrices
     //Use invariant-ekf-ros for reference on state matrices RobotState
-
     if (estimator_.enabled()) {
         switch (cheetah_packet_.getType()) {
             case EMPTY: {
@@ -26,7 +26,7 @@ void CheetahSystem::step() {
                 cdata_mtx_->lock();
                 cheetah_packet_.imu = *cheetah_buffer_->imu_q.front();
                 delete cheetah_buffer_->imu_q.front();
-                cheetah_buffer_->imu_q.pop_front();
+                cheetah_buffer_->imu_q.pop();
                 cdata_mtx_->unlock();
                 // Updated InEKF and initializes bias from first imu measurement
                 estimator_.propagateIMU(cheetah_packet_, state_);
@@ -37,7 +37,7 @@ void CheetahSystem::step() {
                     cdata_mtx_->lock();
                     cheetah_packet_.kin = *cheetah_buffer_->kin_q.front();
                     delete cheetah_buffer_->kin_q.front();
-                    cheetah_buffer_->kin_q.pop_front();
+                    cheetah_buffer_->kin_q.pop();
                     cdata_mtx_->unlock();
                     ///TODO: Add function for updating state with kinematics
                     
@@ -49,7 +49,7 @@ void CheetahSystem::step() {
                 cdata_mtx_->lock();
                 cheetah_packet_.contact = *cheetah_buffer_->contact_q.front();
                 delete cheetah_buffer_->contact_q.front();
-                cheetah_buffer_->contact_q.pop_front();
+                cheetah_buffer_->contact_q.pop();
                 cdata_mtx_->unlock();
                 ///TODO: Add function for updating state with contacts
 
@@ -68,15 +68,22 @@ void CheetahSystem::step() {
 void CheetahSystem::updateNextPacket() {
     boost::mutex::scoped_lock lock(*cdata_mtx_);
     // Defined as the length of measurement type enum
-    double times[4] = { std::numeric_limits<double>::max() };
+    std::vector<double> times(4, std::numeric_limits<double>::max());
+    int index = 0;
     if (!cheetah_buffer_->imu_q.empty()) {
-        times[IMU] = cheetah_buffer_->imu_q.front()->getTime();
+        index = static_cast<int>(IMU);
+        // std::cout << "IMU GET " << index << "\n";
+        times[index] = cheetah_buffer_->imu_q.front()->getTime();
     }
     if (!cheetah_buffer_->kin_q.empty()) {
-        times[KINEMATIC] = cheetah_buffer_->kin_q.front()->getTime();
+        index = static_cast<int>(KINEMATIC);
+        // std::cout << "KIN GET " << index << "\n";
+        times[index] = cheetah_buffer_->kin_q.front()->getTime();
     }
     if (!cheetah_buffer_->contact_q.empty()) {
-        times[CONTACT] = cheetah_buffer_->contact_q.front()->getTime();
+        index = static_cast<int>(CONTACT);
+        // std::cout << "CONTACT GET " << index << "\n";
+        times[index] = cheetah_buffer_->contact_q.front()->getTime();
     }
 
     // Take most recent time when updating t
