@@ -8,8 +8,8 @@
 #include <vector>
 #include <numeric>
 
-CheetahSystem::CheetahSystem(boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer): 
-    ts_(0.05, 0.05), cdata_mtx_(cdata_mtx), cheetah_buffer_(cheetah_buffer) {}
+CheetahSystem::CheetahSystem(lcm::LCM* lcm, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer): 
+    lcm_(lcm), ts_(0.05, 0.05), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx), estimator_(lcm) {}
 
 void CheetahSystem::step() {
     //Copy data to be handled in queues (lock/unlock)
@@ -29,6 +29,8 @@ void CheetahSystem::step() {
                 cheetah_buffer_->imu_q.pop();
                 cdata_mtx_->unlock();
                 // Updated InEKF and initializes bias from first imu measurement
+                ///TODO: fix seg fault here
+                state_.set(cheetah_packet_);
                 estimator_.propagateIMU(cheetah_packet_, state_);
                 break;
             }
@@ -39,8 +41,9 @@ void CheetahSystem::step() {
                     delete cheetah_buffer_->kin_q.front();
                     cheetah_buffer_->kin_q.pop();
                     cdata_mtx_->unlock();
-                    ///TODO: Add function for updating state with kinematics
-                    
+                    // Correct Kinematics
+                    ///TODO: fix seg fault here
+                    state_.set(cheetah_packet_);
                     estimator_.correctKinematics(state_);
                 }
                 break;
@@ -51,8 +54,9 @@ void CheetahSystem::step() {
                 delete cheetah_buffer_->contact_q.front();
                 cheetah_buffer_->contact_q.pop();
                 cdata_mtx_->unlock();
-                ///TODO: Add function for updating state with contacts
-
+                // Update state with contacts
+                ///TODO: fix seg fault here
+                state_.set(cheetah_packet_);
                 estimator_.setContacts(state_);
                 break;
             }

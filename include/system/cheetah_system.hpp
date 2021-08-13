@@ -22,7 +22,7 @@ class CheetahSystem {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         // Default Contructor
-        CheetahSystem(boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer);
+        CheetahSystem(lcm::LCM* lcm, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer);
         // Step forward one iteration of the system
         void step();
         // // Set the current estimator
@@ -31,6 +31,8 @@ class CheetahSystem {
         // void setController(std::shared_ptr<ControllerBase> controller);
 
     private:
+        // LCM handle
+        lcm::LCM* lcm_;
         // ROS timestamp
         ros::Time timestamp_;
         // Passive Time Synchronizer

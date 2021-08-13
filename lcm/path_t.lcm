@@ -1,0 +1,9 @@
+package cheetah_inekf_lcm;
+
+struct pose_t
+{
+    int64_t seq;
+    double stamp;
+    string frame_id;
+    double body[3];
+}

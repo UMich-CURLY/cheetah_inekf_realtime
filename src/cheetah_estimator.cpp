@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     inekf::NoiseParams params;
 
     //TODO: Initialize CheetahSystem
-    CheetahSystem *system = new CheetahSystem(&cdata_mtx, &cheetah_input_data);
+    CheetahSystem *system = new CheetahSystem(&lcm, &cdata_mtx, &cheetah_input_data);
     // system->setEstimator(std::make_shared<BodyEstimator>());
 
     // //TODO: Listen/Respond Loop

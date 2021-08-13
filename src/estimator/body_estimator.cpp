@@ -9,14 +9,15 @@
 #include "Jp_Body_to_HindLeftFoot.h"
 #include "Jp_Body_to_HindRightFoot.h"
 
-BodyEstimator::BodyEstimator() :
-    t_prev_(0), imu_prev_(Eigen::Matrix<double,6,1>::Zero()) {
+BodyEstimator::BodyEstimator(lcm::LCM* lcm) :
+    lcm_(lcm), t_prev_(0), imu_prev_(Eigen::Matrix<double,6,1>::Zero()) {
 
     // Create private node handle
     ros::NodeHandle nh("~");
     // Set debug output
     nh.param<bool>("/settings/enable_estimator_output", estimator_debug_enabled_, false);
     // Enable visualization publisher if requested
+    nh.param<std::string>("/settings/lcm_pose_channel", LCM_POSE_CHANNEL, "CHEETAH_POSE_CHANNEL");
     nh.param<bool>("/settings/publish_visualization_markers", publish_visualization_markers_, false);
     nh.param<bool>("/settings/publish_visualization_markers", publish_visualization_markers_, false);
     std::cout << "debug viz " << publish_visualization_markers_;    // Set noise parameters
@@ -73,7 +74,7 @@ void BodyEstimator::propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahStat
 
     ///TODO: Check if imu strapdown model is correct
     inekf::RobotState estimate = filter_.getState();
-    Eigen::Vector3d i_p_ib; i_p_ib << -0.0316, 0, 0.08;
+    Eigen::Vector3d i_p_ib; i_p_ib << 0, 0, 0;
     Eigen::Vector3d w = imu.head<3>() - estimate.getGyroscopeBias(); // Angular velocity without bias
     Eigen::Matrix3d R = estimate.getRotation(); // no extra rotation needed
     Eigen::Vector3d p = estimate.getPosition() + R*i_p_ib;
@@ -85,6 +86,7 @@ void BodyEstimator::propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahStat
     // Store previous imu data
     t_prev_ = t;
     imu_prev_ = imu;
+    seq_ = cheetah_data.imu.header.seq;
     if (estimator_debug_enabled_) {
         ROS_INFO("IMU Propagation Complete: linacceleation x: %0.6f y: %.06f z: %0.6f \n", 
             cheetah_data.imu.linear_acceleration.x,
@@ -140,13 +142,13 @@ void BodyEstimator::correctKinematics(CheetahState& state) {
         ROS_INFO("Kinematics correction complete x: " );
     }
     if (publish_visualization_markers_) {
-        
+        publishPose(t_prev_, "/cheetah/imu", seq_);
     }
 }
 
 
 // Publishes the output of the filter over ROS messages
-void BodyEstimator::publish(double time, std::string map_frame_id, uint32_t seq) {
+void BodyEstimator::publishMarkers(double time, std::string map_frame_id, uint32_t seq) {
     // ROS_DEBUG("Publishing data at time: %f", time);
     // ros::Time timestamp = ros::Time(time);
     // static geometry_msgs::Point point_prev;
@@ -272,6 +274,42 @@ void BodyEstimator::publish(double time, std::string map_frame_id, uint32_t seq)
 
     // // Publish markers
     // visualization_pub_.publish(markers_msg);
+}
+
+// TODO: decide if we want to publish path over ROS as well as LCM
+void BodyEstimator::publishPath() {
+    if (poses_.empty()) return;
+
+    // Uses time of most recent pose as seq and stamp
+    // nav_msgs::Path path_msg;
+    // path_msg.header.seq = poses_.rbegin()->header.seq;
+    // path_msg.header.stamp = poses_.rbegin()->header.stamp;
+    // path_msg.header.frame_id = poses_.rbegin()->header.frame;
+    // path_msg.poses = poses_;
+    // std::cout<<"current pose: "<<path_msg.poses.back().pose.position.x<<", "<<path_msg.poses.back().pose.position.y<<", "<<path_msg.poses.back().pose.position.z<<std::endl;
+    
+    // path_pub_.publish(path_msg);
+}
+
+// Publish current pose over lcm & and save to ros
+void BodyEstimator::publishPose(double time, std::string map_frame_id, uint32_t seq) {
+    cheetah_inekf_lcm::pose_t pose;
+    pose.seq = seq;
+    pose.stamp = time;
+    pose.frame_id = map_frame_id;
+
+    // TODO: Save pose in ROS if needed
+    inekf::RobotState estimate = filter_.getState();
+    Eigen::Vector3d p = estimate.getPosition();
+    // geometry_msgs::Point body_pos; //(p(0), p(1), p(2));
+    // body_pos.x = p(0); body_pos.y = p(1); body_pos.z = p(2);
+    // pose.pose.position = body_pos;
+    // poses_.push_back(pose);
+
+    // Publish pose in LCM
+    std::cout << "Issue before read " << std::endl;
+    pose.body[0] = p(0); pose.body[1] = p(1); pose.body[2] = p(2);
+    lcm_->publish(LCM_POSE_CHANNEL, &pose);
 }
 
 void BodyEstimator::initBias(cheetah_lcm_packet_t& cheetah_data) {

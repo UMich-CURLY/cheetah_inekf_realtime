@@ -77,10 +77,10 @@ void CheetahState::set(const cheetah_lcm_packet_t& cheetah_data) {
     dq_(16) = kin_data->velocity[10];
     dq_(17) = kin_data->velocity[11];
 
-    // Set base velocity using kinematic estimate
-    Eigen::Vector3d i_v_wi = this->getKinematicVelocity();
-    Eigen::Vector3d i_p_ib; i_p_ib <<-0.0316; 0; 0.08;
-    Eigen::Vector3d v = this->getRotation() * (i_v_wi + skew(angularVelocity)*i_p_ib);
+    // Set base velocity using kinematic estimate DO NOT NEED
+    // Eigen::Vector3d i_v_wi = this->getKinematicVelocity();
+    // Eigen::Vector3d i_p_ib; i_p_ib <<-0.0316; 0; 0.08;
+    // Eigen::Vector3d v = this->getRotation() * (i_v_wi + skew(angularVelocity)*i_p_ib);
 
 
     // Compute ground reaction force and contact estimates if indicated
