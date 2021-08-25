@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     boost::mutex cdata_mtx;
 
     cheetah_lcm_data_t cheetah_input_data;
-    cheetah_inekf_lcm::InEKF_lcm<12> lcm_publisher_node(&lcm, &nh, &cheetah_input_data, &cdata_mtx);
+    cheetah_inekf_lcm::lcm_handler<12> lcm_subscriber_node(&lcm, &nh, &cheetah_input_data, &cdata_mtx);
 
     // Set noise parameters
     inekf::NoiseParams params;

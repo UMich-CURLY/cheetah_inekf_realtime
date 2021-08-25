@@ -102,10 +102,10 @@ class CheetahState {
         Eigen::Matrix<double, 18,1> q_;
         Eigen::Matrix<double, 18,1> dq_;
         Eigen::Matrix<double,4,1> GRF_; //!< ground reaction force
-        uint8_t left_front_contact_;
-        uint8_t left_hind_contact_;
-        uint8_t right_front_contact_;
-        uint8_t right_hind_contact_;
+        int8_t left_front_contact_;
+        int8_t left_hind_contact_;
+        int8_t right_front_contact_;
+        int8_t right_hind_contact_;
 };
 
 #endif

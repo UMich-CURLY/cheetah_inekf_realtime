@@ -17,6 +17,7 @@ void CheetahSystem::step() {
 
     //Set state using encoder data todo: create state matrices
     //Use invariant-ekf-ros for reference on state matrices RobotState
+
     if (estimator_.enabled()) {
         switch (cheetah_packet_.getType()) {
             case EMPTY: {
@@ -24,8 +25,8 @@ void CheetahSystem::step() {
             }
             case IMU: {
                 cdata_mtx_->lock();
-                cheetah_packet_.imu = *cheetah_buffer_->imu_q.front();
-                delete cheetah_buffer_->imu_q.front();
+                cheetah_packet_.imu = cheetah_buffer_->imu_q.front();
+                // delete cheetah_buffer_->imu_q.front();
                 cheetah_buffer_->imu_q.pop();
                 cdata_mtx_->unlock();
                 // Updated InEKF and initializes bias from first imu measurement
@@ -34,12 +35,12 @@ void CheetahSystem::step() {
                 estimator_.propagateIMU(cheetah_packet_, state_);
                 break;
             }
-            case KINEMATIC: {
+            case JOINT_STATE: {
                 if (estimator_.biasInitialized()) {
                     cdata_mtx_->lock();
-                    cheetah_packet_.kin = *cheetah_buffer_->kin_q.front();
-                    delete cheetah_buffer_->kin_q.front();
-                    cheetah_buffer_->kin_q.pop();
+                    cheetah_packet_.joint_state = cheetah_buffer_->joint_state_q.front();
+                    // delete cheetah_buffer_->joint_state_q.front();
+                    cheetah_buffer_->joint_state_q.pop();
                     cdata_mtx_->unlock();
                     // Correct Kinematics
                     ///TODO: fix seg fault here
@@ -50,8 +51,8 @@ void CheetahSystem::step() {
             } 
             case CONTACT: {
                 cdata_mtx_->lock();
-                cheetah_packet_.contact = *cheetah_buffer_->contact_q.front();
-                delete cheetah_buffer_->contact_q.front();
+                cheetah_packet_.contact = cheetah_buffer_->contact_q.front();
+                // delete cheetah_buffer_->contact_q.front();
                 cheetah_buffer_->contact_q.pop();
                 cdata_mtx_->unlock();
                 // Update state with contacts
@@ -65,6 +66,56 @@ void CheetahSystem::step() {
             }
         }
     }
+
+    /// OLDVERSION:
+    // if (estimator_.enabled()) {
+    //     switch (cheetah_packet_.getType()) {
+    //         case EMPTY: {
+    //             break;
+    //         }
+    //         case IMU: {
+    //             cdata_mtx_->lock();
+    //             cheetah_packet_.imu = *cheetah_buffer_->imu_q.front();
+    //             delete cheetah_buffer_->imu_q.front();
+    //             cheetah_buffer_->imu_q.pop();
+    //             cdata_mtx_->unlock();
+    //             // Updated InEKF and initializes bias from first imu measurement
+    //             ///TODO: fix seg fault here
+    //             state_.set(cheetah_packet_);
+    //             estimator_.propagateIMU(cheetah_packet_, state_);
+    //             break;
+    //         }
+    //         case JOINT_STATE: {
+    //             if (estimator_.biasInitialized()) {
+    //                 cdata_mtx_->lock();
+    //                 // cheetah_packet_.joint_state = *cheetah_buffer_->joint_state_q.front();
+    //                 // // delete cheetah_buffer_->joint_state_q.front();
+    //                 // cheetah_buffer_->joint_state_q.pop();
+    //                 cdata_mtx_->unlock();
+    //                 // Correct Kinematics
+    //                 ///TODO: fix seg fault here
+    //                 state_.set(cheetah_packet_);
+    //                 estimator_.correctKinematics(state_);
+    //             }
+    //             break;
+    //         } 
+    //         case CONTACT: {
+    //             cdata_mtx_->lock();
+    //             cheetah_packet_.contact = *cheetah_buffer_->contact_q.front();
+    //             delete cheetah_buffer_->contact_q.front();
+    //             cheetah_buffer_->contact_q.pop();
+    //             cdata_mtx_->unlock();
+    //             // Update state with contacts
+    //             ///TODO: fix seg fault here
+    //             state_.set(cheetah_packet_);
+    //             estimator_.setContacts(state_);
+    //             break;
+    //         }
+    //         default: {
+    //             break;
+    //         }
+    //     }
+    // }
 }
 
 // Private Functions
@@ -79,10 +130,10 @@ void CheetahSystem::updateNextPacket() {
         // std::cout << "IMU GET " << index << "\n";
         times[index] = cheetah_buffer_->imu_q.front()->getTime();
     }
-    if (!cheetah_buffer_->kin_q.empty()) {
-        index = static_cast<int>(KINEMATIC);
+    if (!cheetah_buffer_->joint_state_q.empty()) {
+        index = static_cast<int>(JOINT_STATE);
         // std::cout << "KIN GET " << index << "\n";
-        times[index] = cheetah_buffer_->kin_q.front()->getTime();
+        times[index] = cheetah_buffer_->joint_state_q.front()->getTime();
     }
     if (!cheetah_buffer_->contact_q.empty()) {
         index = static_cast<int>(CONTACT);

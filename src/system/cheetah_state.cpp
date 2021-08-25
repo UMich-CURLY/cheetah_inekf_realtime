@@ -12,70 +12,122 @@ CheetahState::CheetahState(const cheetah_lcm_packet_t& cheetah_data) {
 
 // Set q and dq from cheetah_lcm_data_t
 void CheetahState::set(const cheetah_lcm_packet_t& cheetah_data) { 
+
+    switch (cheetah_data.getType()) {
+        case EMPTY: {
+            break;
+        }
+        case IMU: {
+            const std::shared_ptr<cheetah_inekf_lcm::ImuMeasurement<double>> imu_data = cheetah_data.imu;
+            
+            // Set orientation
+            Eigen::Quaternion<double> quat(imu_data.get()->orientation.w, 
+                                   imu_data.get()->orientation.x,
+                                   imu_data.get()->orientation.y,
+                                   imu_data.get()->orientation.z); 
+            Eigen::Vector3d euler = Rotation2Euler(quat.toRotationMatrix()); // Eigen's eulerAngles function caused discontinuities in signal  
+            q_.block<3,1>(3,0) = euler;
+
+            // Set orientation rates
+            Eigen::Vector3d angularVelocity, eulerRates;
+            angularVelocity << imu_data.get()->angular_velocity.x, imu_data.get()->angular_velocity.y, imu_data.get()->angular_velocity.z;
+            eulerRates = AngularVelocity2EulerRates(euler, angularVelocity);
+            dq_.block<3,1>(3,0) = eulerRates;
+            break;
+        }
+        case JOINT_STATE: {
+            const std::shared_ptr<cheetah_inekf_lcm::JointStateMeasurement> joint_state_data = cheetah_data.joint_state;
+            q_.block<12,1>(6,0) = joint_state_data->joint_position;
+            dq_.block<12,1>(6,0) = joint_state_data->joint_velocity;
+
+            break;
+        } 
+        case CONTACT: {
+            const std::shared_ptr<cheetah_inekf_lcm::ContactsMeasurement> contact_data = cheetah_data.contact;
+            right_front_contact_ = contact_data.get()->getContacts()[0];
+            left_front_contact_  = contact_data.get()->getContacts()[1];
+            right_hind_contact_  = contact_data.get()->getContacts()[2];
+            left_hind_contact_   = contact_data.get()->getContacts()[3];
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+
+    return;
+
+    /// REMARK: to use the following code, delete the return above
+    const cheetah_inekf_lcm::ImuMeasurement<double>* imu_data = cheetah_data.imu.get();
+    
+    const cheetah_inekf_lcm::JointStateMeasurement* joint_state_data = cheetah_data.joint_state.get();
+
+    const cheetah_inekf_lcm::ContactsMeasurement* contact_data = cheetah_data.contact.get();
+
+
     // ---------- Set Positions ------------//
     // Set orientation
-    /// TODO: Lock the memory:
-    const cheetah_inekf_lcm::ImuMeasurement<double>* imu_data = &cheetah_data.imu;
-    
-    const cheetah_inekf_lcm::KinematicsMeasurement<double>* kin_data = &cheetah_data.kin;
-
-    const cheetah_inekf_lcm::ContactsMeasurement* contact_data = &cheetah_data.contact;
-
     Eigen::Quaternion<double> quat(imu_data->orientation.w, 
                                    imu_data->orientation.x,
                                    imu_data->orientation.y,
                                    imu_data->orientation.z); 
     Eigen::Vector3d euler = Rotation2Euler(quat.toRotationMatrix()); // Eigen's eulerAngles function caused discontinuities in signal
-    q_(3) = euler(0);
-    q_(4) = euler(1);
-    q_(5) = euler(2);
-    // Set encoders right front leg
-    q_(6) = kin_data->position[0]; 
-    q_(7) = kin_data->position[1];
-    q_(8) = kin_data->position[2];
+    // q_(3) = euler(0);
+    // q_(4) = euler(1);
+    // q_(5) = euler(2);
+    q_.block<3,1>(3,0) = euler;
+    q_.block<12,1>(6,0) = joint_state_data->joint_position;
+    // // Set encoders right front leg
+    // q_(6) = joint_state_data->joint_position[0]; 
+    // q_(7) = joint_state_data->joint_position[1];
+    // q_(8) = joint_state_data->joint_position[2];
 
-    // Set encoders left front leg:
-    q_(9) = kin_data->position[3];
-    q_(10) = kin_data->position[4];
-    q_(11) = kin_data->position[5];
+    // // Set encoders left front leg:
+    // q_(9) = joint_state_data->joint_position[3];
+    // q_(10) = joint_state_data->joint_position[4];
+    // q_(11) = joint_state_data->joint_position[5];
 
-    // Set encoders right hind leg:
-    q_(12) = kin_data->position[6];
-    q_(13) = kin_data->position[7];
-    q_(14) = kin_data->position[8];
+    // // Set encoders right hind leg:
+    // q_(12) = joint_state_data->joint_position[6];
+    // q_(13) = joint_state_data->joint_position[7];
+    // q_(14) = joint_state_data->joint_position[8];
 
-    // Set encoders left hind leg
-    q_(15) = kin_data->position[9];
-    q_(16) = kin_data->position[10];
-    q_(17) = kin_data->position[11];
+    // // Set encoders left hind leg
+    // q_(15) = joint_state_data->joint_position[9];
+    // q_(16) = joint_state_data->joint_position[10];
+    // q_(17) = joint_state_data->joint_position[11];
 
     // ---------- Set Velocities ------------//
     // Set orientation rates
     Eigen::Vector3d angularVelocity, eulerRates;
     angularVelocity << imu_data->angular_velocity.x, imu_data->angular_velocity.y, imu_data->angular_velocity.z;
     eulerRates = AngularVelocity2EulerRates(euler, angularVelocity);
-    dq_(3) = eulerRates(0);
-    dq_(4) = eulerRates(1);
-    dq_(5) = eulerRates(2);
-    // Set encoder velocities right front leg
-    dq_(6) = kin_data->velocity[0];
-    dq_(7) = kin_data->velocity[1];
-    dq_(8) = kin_data->velocity[2];
+    // dq_(3) = eulerRates(0);
+    // dq_(4) = eulerRates(1);
+    // dq_(5) = eulerRates(2);
 
-    // Set encoder velocities left front leg
-    dq_(9) = kin_data->velocity[3];
-    dq_(10) = kin_data->velocity[4];
-    dq_(11) = kin_data->velocity[5];
+    dq_.block<3,1>(3,0) = eulerRates;
+    dq_.block<12,1>(6,0) = joint_state_data->joint_velocity;
 
-        // Set encoder velocities right hind leg
-    dq_(12) = kin_data->velocity[6];
-    dq_(13) = kin_data->velocity[7];
-    dq_(14) = kin_data->velocity[8];
+    // // Set encoder velocities right front leg
+    // dq_(6) = joint_state_data->joint_velocity[0];
+    // dq_(7) = joint_state_data->joint_velocity[1];
+    // dq_(8) = joint_state_data->joint_velocity[2];
 
-    // Set encoder velocities left hind leg
-    dq_(15) = kin_data->velocity[9];
-    dq_(16) = kin_data->velocity[10];
-    dq_(17) = kin_data->velocity[11];
+    // // Set encoder velocities left front leg
+    // dq_(9) = joint_state_data->joint_velocity[3];
+    // dq_(10) = joint_state_data->joint_velocity[4];
+    // dq_(11) = joint_state_data->joint_velocity[5];
+
+    // // Set encoder velocities right hind leg
+    // dq_(12) = joint_state_data->joint_velocity[6];
+    // dq_(13) = joint_state_data->joint_velocity[7];
+    // dq_(14) = joint_state_data->joint_velocity[8];
+
+    // // Set encoder velocities left hind leg
+    // dq_(15) = joint_state_data->joint_velocity[9];
+    // dq_(16) = joint_state_data->joint_velocity[10];
+    // dq_(17) = joint_state_data->joint_velocity[11];
 
     // Set base velocity using kinematic estimate DO NOT NEED
     // Eigen::Vector3d i_v_wi = this->getKinematicVelocity();
@@ -85,10 +137,10 @@ void CheetahState::set(const cheetah_lcm_packet_t& cheetah_data) {
 
     // Compute ground reaction force and contact estimates if indicated
     /// REMARK: This will be given by lcm_cnn_interface
-    right_front_contact_    = (*contact_data)[0].indicator;
-    left_front_contact_     = (*contact_data)[1].indicator;
-    right_hind_contact_     = (*contact_data)[2].indicator;
-    left_hind_contact_      = (*contact_data)[3].indicator;
+    // right_front_contact_    = (*contact_data)[0].indicator;
+    // left_front_contact_     = (*contact_data)[1].indicator;
+    // right_hind_contact_     = (*contact_data)[2].indicator;
+    // left_hind_contact_      = (*contact_data)[3].indicator;
     return;
 }
 

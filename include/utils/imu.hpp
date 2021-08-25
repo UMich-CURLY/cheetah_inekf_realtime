@@ -26,7 +26,9 @@ namespace cheetah_inekf_lcm {
             ImuOrientation<T> orientation;
             ImuAngularVelocity<T> angular_velocity;
             ImuLinearAcceleration<T> linear_acceleration;
+
             Eigen::Matrix3d getRotation() { return R_; }
+            
             void setRotation() {
                 Eigen::Quaternion<double> q(orientation.w,orientation.x,orientation.y,orientation.z);
                 R_ = q.toRotationMatrix();

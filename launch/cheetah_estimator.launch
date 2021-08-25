@@ -2,6 +2,8 @@
     <arg name="cheetah_namespace" default="cheetah" />
     <param name="use_sim_time" value="true" />
 
+    <node name="cheetah_inekf_lcm" pkg="cheetah_inekf_lcm" type="cheetah_estimator" output="screen" required="true" launch-prefix="gdb -ex run --args"/>
+
     <!-- Run cheetah estimator publisher -->
     <rosparam file="$(find cheetah_inekf_lcm)/config/settings.yaml" />
     <!-- Initialize inEKF params -->

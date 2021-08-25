@@ -9,7 +9,7 @@ namespace cheetah_inekf_lcm {
         public:
             // Construct KINEMATICS measurement
             KinematicsMeasurement() {
-                type_ = KINEMATIC;
+                type_ = KINEMATICS;
             }
         
             void setKinematicsArray(const inekf_msgs::KinematicsArray& kinematics) {
@@ -26,4 +26,5 @@ namespace cheetah_inekf_lcm {
         private:
             inekf_msgs::KinematicsArray kin_arr;
     };
+template class cheetah_inekf_lcm::lcm_handler<12>;
 }

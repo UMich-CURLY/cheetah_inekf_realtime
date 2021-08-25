@@ -28,17 +28,17 @@
 namespace cheetah_inekf_lcm {
 
 template <unsigned int ENCODER_DIM>
-class InEKF_lcm {
+class lcm_handler {
     public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    InEKF_lcm(lcm::LCM* lcm, ros::NodeHandle* n, cheetah_lcm_data_t* cheetah_data_in, boost::mutex* cdata_mtx) : 
+    lcm_handler(lcm::LCM* lcm, ros::NodeHandle* n, cheetah_lcm_data_t* cheetah_data_in, boost::mutex* cdata_mtx) : 
         lcm_(lcm), nh_(n), cheetah_data_in_(cheetah_data_in), cdata_mtx_(cdata_mtx) {
         assert(lcm_);  // confirm a nullptr wasn't passed in
         ROS_INFO("Cheetah_Lcm ready to initialize...."); 
 
-        lcm_->subscribe("microstrain", &cheetah_inekf_lcm::InEKF_lcm<12>::imu_lcm_callback, this);
-        lcm_->subscribe("leg_control_data", &cheetah_inekf_lcm::InEKF_lcm<12>::joint_state_lcm_callback, this);
-        lcm_->subscribe("contact", &cheetah_inekf_lcm::InEKF_lcm<12>::contact_lcm_callback, this);
+        lcm_->subscribe("microstrain", &cheetah_inekf_lcm::lcm_handler<12>::imu_lcm_callback, this);
+        lcm_->subscribe("leg_control_data", &cheetah_inekf_lcm::lcm_handler<12>::joint_state_lcm_callback, this);
+        lcm_->subscribe("contact", &cheetah_inekf_lcm::lcm_handler<12>::contact_lcm_callback, this);
 	    
 	    seq_imu_data_ = 0;
         seq_joint_state_ = 0;
