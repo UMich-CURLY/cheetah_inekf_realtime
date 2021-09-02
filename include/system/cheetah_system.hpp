@@ -5,6 +5,7 @@
 #include "estimator/body_estimator.hpp"
 #include "system/cheetah_state.hpp"
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include "ros/ros.h"
 #include "utils/cheetah_data_t.hpp"
@@ -49,6 +50,11 @@ class CheetahSystem {
         cheetah_lcm_packet_t cheetah_packet_;
         // Update most recent packet to use
         void updateNextPacket();
+        // Publish output path
+        void poseCallback(const CheetahState& state_);
+        // output file
+        std::string file_name_;
+        std::string tum_file_name_;
 };
 
 #endif // CHEETAHSYSTEM_H

@@ -17,10 +17,12 @@ struct cheetah_lcm_data_t {
     cheetah_lcm_data_t() {}
 
     // std::queue<cheetah_inekf_lcm::ImuMeasurement<double>* > imu_q;
+    // std::queue<cheetah_inekf_lcm::ContactsMeasurement* > contact_q;
+
     std::queue<std::shared_ptr<cheetah_inekf_lcm::ImuMeasurement<double>>> imu_q;
     std::queue<std::shared_ptr<cheetah_inekf_lcm::JointStateMeasurement>> joint_state_q;
-    // std::queue<cheetah_inekf_lcm::ContactsMeasurement* > contact_q;
     std::queue<std::shared_ptr<cheetah_inekf_lcm::ContactsMeasurement>> contact_q;
+    std::queue<double> timestamp_q;
 
 };
 

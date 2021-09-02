@@ -28,6 +28,7 @@
 
 #define LCM_MULTICAST_URL "udpm://239.255.76.67:7667?ttl=2"
 
+
 int main(int argc, char **argv)
 {
     // Initialize ROS node
@@ -60,6 +61,8 @@ int main(int argc, char **argv)
     while (lcm.handle() == 0 && ros::ok())
     {
         system->step();
+        /// TODO: publish to ros
+
         ros::spinOnce();
     }
 

@@ -18,6 +18,7 @@
 #include "lcm-types/cheetah_inekf_lcm/imu_t.hpp"
 #include "lcm-types/cheetah_inekf_lcm/legcontrol_t.hpp"
 #include "lcm-types/cheetah_inekf_lcm/contact_t.hpp"
+#include "lcm-types/cheetah_inekf_lcm/synced_proprioceptive_lcmt.hpp"
 
 // Threading
 #include <boost/thread/condition.hpp>
@@ -36,9 +37,13 @@ class lcm_handler {
         assert(lcm_);  // confirm a nullptr wasn't passed in
         ROS_INFO("Cheetah_Lcm ready to initialize...."); 
 
-        lcm_->subscribe("microstrain", &cheetah_inekf_lcm::lcm_handler<12>::imu_lcm_callback, this);
-        lcm_->subscribe("leg_control_data", &cheetah_inekf_lcm::lcm_handler<12>::joint_state_lcm_callback, this);
-        lcm_->subscribe("contact", &cheetah_inekf_lcm::lcm_handler<12>::contact_lcm_callback, this);
+        // lcm_->subscribe("microstrain", &cheetah_inekf_lcm::lcm_handler<12>::imu_lcm_callback, this);
+        // lcm_->subscribe("leg_control_data", &cheetah_inekf_lcm::lcm_handler<12>::joint_state_lcm_callback, this);
+        // lcm_->subscribe("contact", &cheetah_inekf_lcm::lcm_handler<12>::contact_lcm_callback, this);
+        
+        /// SYNCED:
+        lcm_->subscribe("synced_proprioceptive_data", &cheetah_inekf_lcm::lcm_handler<12>::synced_msgs_lcm_callback, this);
+
 	    
 	    seq_imu_data_ = 0;
         seq_joint_state_ = 0;
@@ -83,6 +88,10 @@ class lcm_handler {
     void contact_lcm_callback(const lcm::ReceiveBuffer* rbuf,
                                const std::string& channel_name,
                                const contact_t* msg);
+
+    void synced_msgs_lcm_callback(const lcm::ReceiveBuffer* rbuf,
+                               const std::string& channel_name,
+                               const synced_proprioceptive_lcmt* msg);
   
   private:
     lcm::LCM* lcm_;
