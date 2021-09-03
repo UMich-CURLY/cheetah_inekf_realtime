@@ -96,18 +96,17 @@ void CheetahSystem::updateNextPacket() {
     }
 
     // Take most recent time when updating t
-    // double min_time = times[EMPTY];
-    // MeasurementType min_index = EMPTY;
-    // for (int i = 0; i < 4; ++i) {
-    //     if (times[i] < min_time) {
-    //         min_time = times[i];
-    //         min_index = static_cast<MeasurementType>(i);
-    //     }
-    // }
+    double min_time = times[EMPTY];
+    MeasurementType min_index = EMPTY;
+    for (int i = 0; i < 4; ++i) {
+        if (times[i] < min_time) {
+            min_time = times[i];
+            min_index = static_cast<MeasurementType>(i);
+        }
+    }
 
     // Updates next type and time
-    // cheetah_packet_.setType(min_index);
-    // cheetah_packet_.setTime(min_time);
+    cheetah_packet_.setType(min_index);
 
     cheetah_packet_.setTime(timestamp);
 

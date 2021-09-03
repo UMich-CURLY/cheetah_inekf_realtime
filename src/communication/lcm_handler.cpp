@@ -6,9 +6,9 @@ namespace cheetah_inekf_lcm {
   void lcm_handler<ENCODER_DIM>::synced_msgs_lcm_callback(const lcm::ReceiveBuffer* rbuf,
                                            const std::string& channel_name,
                                            const synced_proprioceptive_lcmt* msg) {
-    ROS_DEBUG_STREAM("Receive new synchronized msg");    
+    ROS_DEBUG_STREAM("Receive new synchronized msg"); 
+       
     seq_joint_state_++;
-
     std::shared_ptr<ImuMeasurement<double>> imu_measurement_ptr = std::shared_ptr<ImuMeasurement<double>> (new ImuMeasurement<double>);
     std::shared_ptr<JointStateMeasurement> joint_state_ptr = std::shared_ptr<JointStateMeasurement> (new JointStateMeasurement(ENCODER_DIM));
     std::shared_ptr<ContactsMeasurement> contact_ptr = std::shared_ptr<ContactsMeasurement>(new ContactsMeasurement);

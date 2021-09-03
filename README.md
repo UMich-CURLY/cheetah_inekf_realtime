@@ -17,5 +17,6 @@ This project is the wrapper of invariant-ekf for MiniCheetah. It takes input fro
 3. roslaunch cheetah_inekf_lcm cheetah_estimator.launch
 4. source ~/devel/setup.bash
 5. rosrun cheetah_inekf_lcm cheetah_estimator
+6. Run lcm file lcm-logplayer --speed=0.1 --lcm-url=udpm://239.255.76.67:7667?ttl=2 cheetah_synced_msgs.lcm
 
 diff -y ./cheetah_inekf_lcm/tests/kinematics/lcmlog.out ./cheetah_inekf_ros/tests/kinematics/lcmlog.out > diff.txt

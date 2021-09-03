@@ -20,7 +20,7 @@ BodyEstimator::BodyEstimator(lcm::LCM* lcm) :
     nh.param<std::string>("/settings/lcm_pose_channel", LCM_POSE_CHANNEL, "CHEETAH_POSE_CHANNEL");
     nh.param<bool>("/settings/publish_visualization_markers", publish_visualization_markers_, false);
     nh.param<bool>("/settings/publish_visualization_markers", publish_visualization_markers_, false);
-    std::cout << "debug viz " << publish_visualization_markers_;    // Set noise parameters
+
     inekf::NoiseParams params;
     double std;
     if (nh.getParam("/noise/gyroscope_std", std)) { 
@@ -87,6 +87,7 @@ void BodyEstimator::propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahStat
     t_prev_ = t;
     imu_prev_ = imu;
     seq_ = cheetah_data.imu.get()->header.seq;
+
     if (estimator_debug_enabled_) {
         ROS_INFO("IMU Propagation Complete: linacceleation x: %0.6f y: %.06f z: %0.6f \n", 
             cheetah_data.imu.get()->linear_acceleration.x,
