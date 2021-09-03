@@ -140,7 +140,11 @@ void BodyEstimator::correctKinematics(CheetahState& state) {
 
     filter_.CorrectKinematics(kinematics);
     if (estimator_debug_enabled_) {
-        ROS_INFO("Kinematics correction complete x: " );
+        auto position = filter_.getState().getPosition();
+        ROS_INFO("Kinematics correction complete x: %0.6f y: %0.6f z: %0.6f\n", 
+                position[0],
+                position[1], 
+                position[2]);
     }
     if (publish_visualization_markers_) {
         publishPose(t_prev_, "/cheetah/imu", seq_);
