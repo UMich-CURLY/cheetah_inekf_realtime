@@ -72,6 +72,8 @@ void BodyEstimator::propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahStat
     if (dt > 0)
         filter_.Propagate(imu_prev_, dt); 
 
+    // correctKinematics(state);
+
     ///TODO: Check if imu strapdown model is correct
     inekf::RobotState estimate = filter_.getState();
     Eigen::Vector3d i_p_ib; i_p_ib << 0, 0, 0;
@@ -101,10 +103,10 @@ void BodyEstimator::setContacts(CheetahState& state) {
     // Update contact information
     const double CONTACT_THRESHOLD = 1;
     std::vector<std::pair<int,bool>> contacts;
-    contacts.push_back(std::pair<int,bool> (1, (state.getLeftFrontContact()>=CONTACT_THRESHOLD) ? true:false)); 
-    contacts.push_back(std::pair<int,bool> (3, (state.getLeftHindContact()>=CONTACT_THRESHOLD) ? true:false)); 
     contacts.push_back(std::pair<int,bool> (0, (state.getRightFrontContact()>=CONTACT_THRESHOLD) ? true:false)); 
+    contacts.push_back(std::pair<int,bool> (1, (state.getLeftFrontContact()>=CONTACT_THRESHOLD) ? true:false)); 
     contacts.push_back(std::pair<int,bool> (2, (state.getRightHindContact()>=CONTACT_THRESHOLD) ? true:false)); 
+    contacts.push_back(std::pair<int,bool> (3, (state.getLeftHindContact()>=CONTACT_THRESHOLD) ? true:false)); 
     filter_.setContacts(contacts); // Set new contact states
 }
 
@@ -120,10 +122,10 @@ void BodyEstimator::correctKinematics(CheetahState& state) {
     Eigen::Matrix<double,3,12> JpFR = Jp_Body_to_FrontRightFoot(encoders);
     Eigen::Matrix<double,3,12> JpHL = Jp_Body_to_HindLeftFoot(encoders);
     Eigen::Matrix<double,3,12> JpHR = Jp_Body_to_HindRightFoot(encoders);
-    Eigen::Matrix<double,6,6> covFL = Eigen::Matrix<double,6,6>::Identity();
-    Eigen::Matrix<double,6,6> covFR = Eigen::Matrix<double,6,6>::Identity();
-    Eigen::Matrix<double,6,6> covHL = Eigen::Matrix<double,6,6>::Identity();
-    Eigen::Matrix<double,6,6> covHR = Eigen::Matrix<double,6,6>::Identity();
+    Eigen::Matrix<double,6,6> covFL = 0.01 * Eigen::Matrix<double,6,6>::Identity();
+    Eigen::Matrix<double,6,6> covFR = 0.01 * Eigen::Matrix<double,6,6>::Identity();
+    Eigen::Matrix<double,6,6> covHL = 0.01 * Eigen::Matrix<double,6,6>::Identity();
+    Eigen::Matrix<double,6,6> covHR = 0.01 * Eigen::Matrix<double,6,6>::Identity();
     covFL.block<3,3>(3,3) = JpFL*encoder_cov_*JpFL.transpose() + prior_kinematics_cov_;
     covFR.block<3,3>(3,3) = JpFR*encoder_cov_*JpFR.transpose() + prior_kinematics_cov_;
     covHL.block<3,3>(3,3) = JpHL*encoder_cov_*JpHL.transpose() + prior_kinematics_cov_;

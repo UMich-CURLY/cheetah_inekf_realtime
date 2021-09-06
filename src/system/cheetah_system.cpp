@@ -10,8 +10,8 @@
 
 CheetahSystem::CheetahSystem(lcm::LCM* lcm, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer): 
     lcm_(lcm), ts_(0.05, 0.05), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx), estimator_(lcm) {
-        file_name_ = "inekf_pose_cheetah.txt";
-        tum_file_name_ = "inekf_pose_tum.txt";
+        file_name_ = "/home/tingjun/Desktop/cheetah_inekf_pose_kitti.txt";
+        tum_file_name_ = "/home/tingjun/Desktop/cheetah_inekf_pose_tum.txt";
         std::ofstream outfile(file_name_);
         std::ofstream tum_outfile(tum_file_name_);
         outfile.close();
@@ -30,7 +30,7 @@ void CheetahSystem::step() {
         cheetah_packet_.imu = cheetah_buffer_->imu_q.front();
         cheetah_packet_.joint_state = cheetah_buffer_->joint_state_q.front();
         cheetah_packet_.contact = cheetah_buffer_->contact_q.front();
-        
+
         cheetah_buffer_->imu_q.pop();
         cheetah_buffer_->joint_state_q.pop();
         cheetah_buffer_->contact_q.pop();
@@ -61,7 +61,7 @@ void CheetahSystem::poseCallback(const CheetahState& state_) {
         outfile.close();
         // tum style
         std::ofstream tum_outfile(tum_file_name_,std::ofstream::out | std::ofstream::app );
-        tum_outfile << /*pose.header.stamp <<*/ " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
+        tum_outfile << cheetah_packet_.getTime() << " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
         <<" "<< state_.getQuaternion().x() <<" "<< state_.getQuaternion().z() <<" "<< state_.getQuaternion().w() <<std::endl<<std::flush;
         
         tum_outfile.close();
@@ -78,40 +78,40 @@ void CheetahSystem::updateNextPacket() {
     double timestamp = cheetah_buffer_->timestamp_q.front();
     cheetah_buffer_->timestamp_q.pop();
 
-    int index = 0;
-    if (!cheetah_buffer_->imu_q.empty()) {
-        index = static_cast<int>(IMU);
-        // std::cout << "IMU GET " << index << "\n";
-        times[index] = cheetah_buffer_->imu_q.front()->getTime();
-    }
-    if (!cheetah_buffer_->joint_state_q.empty()) {
-        index = static_cast<int>(JOINT_STATE);
-        // std::cout << "KIN GET " << index << "\n";
-        times[index] = cheetah_buffer_->joint_state_q.front()->getTime();
-    }
-    if (!cheetah_buffer_->contact_q.empty()) {
-        index = static_cast<int>(CONTACT);
-        // std::cout << "CONTACT GET " << index << "\n";
-        times[index] = cheetah_buffer_->contact_q.front()->getTime();
-    }
+    // int index = 0;
+    // if (!cheetah_buffer_->imu_q.empty()) {
+    //     index = static_cast<int>(IMU);
+    //     // std::cout << "IMU GET " << index << "\n";
+    //     times[index] = cheetah_buffer_->imu_q.front()->getTime();
+    // }
+    // if (!cheetah_buffer_->joint_state_q.empty()) {
+    //     index = static_cast<int>(JOINT_STATE);
+    //     // std::cout << "KIN GET " << index << "\n";
+    //     times[index] = cheetah_buffer_->joint_state_q.front()->getTime();
+    // }
+    // if (!cheetah_buffer_->contact_q.empty()) {
+    //     index = static_cast<int>(CONTACT);
+    //     // std::cout << "CONTACT GET " << index << "\n";
+    //     times[index] = cheetah_buffer_->contact_q.front()->getTime();
+    // }
 
-    // Take most recent time when updating t
-    double min_time = times[EMPTY];
-    MeasurementType min_index = EMPTY;
-    for (int i = 0; i < 4; ++i) {
-        if (times[i] < min_time) {
-            min_time = times[i];
-            min_index = static_cast<MeasurementType>(i);
-        }
-    }
+    // // Take most recent time when updating t
+    // double min_time = times[EMPTY];
+    // MeasurementType min_index = EMPTY;
+    // for (int i = 0; i < 4; ++i) {
+    //     if (times[i] < min_time) {
+    //         min_time = times[i];
+    //         min_index = static_cast<MeasurementType>(i);
+    //     }
+    // }
 
-    // Updates next type and time
-    cheetah_packet_.setType(min_index);
+    // // Updates next type and time
+    // cheetah_packet_.setType(min_index);
 
     cheetah_packet_.setTime(timestamp);
 
     // Enable filter once first imu measurement is received
-    if (!estimator_.enabled() && cheetah_packet_.getType()==IMU) {
-        estimator_.enableFilter();
-    }
+    // if (!estimator_.enabled() && cheetah_packet_.getType()==IMU) {
+    estimator_.enableFilter();
+    // }
 }
