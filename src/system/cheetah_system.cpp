@@ -10,8 +10,8 @@
 
 CheetahSystem::CheetahSystem(lcm::LCM* lcm, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer): 
     lcm_(lcm), ts_(0.05, 0.05), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx), estimator_(lcm) {
-        file_name_ = "/home/tingjun/Desktop/cheetah_inekf_pose_kitti.txt";
-        tum_file_name_ = "/home/tingjun/Desktop/cheetah_inekf_pose_tum.txt";
+        file_name_ = "/media/jetson256g/data/inekf_result/cheetah_inekf_pose_kitti.txt";
+        tum_file_name_ = "/media/jetson256g/data/inekf_result/cheetah_inekf_pose_tum.txt";
         std::ofstream outfile(file_name_);
         std::ofstream tum_outfile(tum_file_name_);
         outfile.close();

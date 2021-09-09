@@ -110,7 +110,7 @@ void BodyEstimator::setContacts(CheetahState& state) {
 
     // std::cout<<"comparison: "<< state.getLeftFrontContact()<<std::endl;
     // std::cout<<"Contatcs from state: \n"<<state.getRightFrontContact()<<", "<<state.getLeftFrontContact()<<", "<<state.getRightHindContact()<<", "\
-    // <<state.getLeftHindContact()<<std::endl;
+     <<state.getLeftHindContact()<<std::endl;
     // std::cout<<"Current Contacts: \n"<<contacts[0].second<<", "<<contacts[1].second<<", "<<contacts[2].second<<", "<<contacts[3].second<<std::endl;
     filter_.setContacts(contacts); // Set new contact states
 }
