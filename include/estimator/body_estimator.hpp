@@ -25,7 +25,8 @@ class BodyEstimator {
         void disable();
         bool biasInitialized();
         void initBias(cheetah_lcm_packet_t& cheetah_data);
-        void initState();
+        // void initState();
+        void initState(const double t, const cheetah_lcm_packet_t& cheetah_data, const CheetahState& state);
         void setContacts(CheetahState& state);
         void propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahState& state);
         void correctKinematics(CheetahState& state);
@@ -55,8 +56,8 @@ class BodyEstimator {
         double t_prev_;
         uint32_t seq_;
         Eigen::Matrix<double,6,1> imu_prev_;
-        const Eigen::Matrix<double,12,12> encoder_cov_ = 0.0003 * Eigen::Matrix<double,12,12>::Identity(); // 1 deg std dev 
-        const Eigen::Matrix<double,3,3> prior_kinematics_cov_ = 0.003 * Eigen::Matrix<double,3,3>::Identity(); // Adds to FK covariance
+        const Eigen::Matrix<double,12,12> encoder_cov_ = 0.0174533*0.0174533 * Eigen::Matrix<double,12,12>::Identity(); // 1 deg std dev 
+        const Eigen::Matrix<double,3,3> prior_kinematics_cov_ = 0.05*0.05 * Eigen::Matrix<double,3,3>::Identity(); // 5 cm std Adds to FK covariance
 };
 
 #endif // BODYESTIMATOR_H

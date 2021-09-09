@@ -20,28 +20,42 @@ CheetahSystem::CheetahSystem(lcm::LCM* lcm, boost::mutex* cdata_mtx, cheetah_lcm
 
 void CheetahSystem::step() {
     //Copy data to be handled in queues (lock/unlock)
-    updateNextPacket();
+    // updateNextPacket();
 
     //Set state using encoder data todo: create state matrices
     //Use invariant-ekf-ros for reference on state matrices RobotState
 
+    cdata_mtx_->lock();
+    
+    double timestamp = cheetah_buffer_->timestamp_q.front();
+    cheetah_packet_.setTime(timestamp);
+    cheetah_packet_.imu = cheetah_buffer_->imu_q.front();
+    cheetah_packet_.joint_state = cheetah_buffer_->joint_state_q.front();
+    cheetah_packet_.contact = cheetah_buffer_->contact_q.front();
+
+    cheetah_buffer_->timestamp_q.pop();
+    cheetah_buffer_->imu_q.pop();
+    cheetah_buffer_->joint_state_q.pop();
+    cheetah_buffer_->contact_q.pop();
+    cdata_mtx_->unlock();
+
+    state_.set(cheetah_packet_);
+
     if (estimator_.enabled()) {
-        cdata_mtx_->lock();
-        cheetah_packet_.imu = cheetah_buffer_->imu_q.front();
-        cheetah_packet_.joint_state = cheetah_buffer_->joint_state_q.front();
-        cheetah_packet_.contact = cheetah_buffer_->contact_q.front();
 
-        cheetah_buffer_->imu_q.pop();
-        cheetah_buffer_->joint_state_q.pop();
-        cheetah_buffer_->contact_q.pop();
-        cdata_mtx_->unlock();
-
-        state_.set(cheetah_packet_);
         estimator_.setContacts(state_);
         estimator_.propagateIMU(cheetah_packet_, state_);
-        estimator_.correctKinematics(state_);
+        // estimator_.correctKinematics(state_);
 
         poseCallback(state_);
+    } else {
+        std::cout << "Initialized initState" << std::endl;
+        if (estimator_.biasInitialized()) {
+            estimator_.initState(cheetah_packet_.getTime(), cheetah_packet_, state_);
+            estimator_.enableFilter();
+        } else {
+            estimator_.initBias(cheetah_packet_);
+        }
     }
 }
 
@@ -62,7 +76,7 @@ void CheetahSystem::poseCallback(const CheetahState& state_) {
         // tum style
         std::ofstream tum_outfile(tum_file_name_,std::ofstream::out | std::ofstream::app );
         tum_outfile << cheetah_packet_.getTime() << " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
-        <<" "<< state_.getQuaternion().x() <<" "<< state_.getQuaternion().z() <<" "<< state_.getQuaternion().w() <<std::endl<<std::flush;
+        <<" "<< state_.getQuaternion().y() <<" "<< state_.getQuaternion().z() <<" "<< state_.getQuaternion().w() <<std::endl<<std::flush;
         
         tum_outfile.close();
     }
@@ -112,6 +126,6 @@ void CheetahSystem::updateNextPacket() {
 
     // Enable filter once first imu measurement is received
     // if (!estimator_.enabled() && cheetah_packet_.getType()==IMU) {
-    estimator_.enableFilter();
+    // estimator_.enableFilter();
     // }
 }

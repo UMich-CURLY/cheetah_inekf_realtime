@@ -32,16 +32,16 @@ namespace cheetah_inekf_lcm {
             //     return contacts_arr;
             // }
 
-            void setContacts(const Eigen::Matrix<int8_t, Eigen::Dynamic, 1> &contacts) {
+            void setContacts(const Eigen::Matrix<bool, Eigen::Dynamic, 1> &contacts) {
                 contacts_ = contacts;
             }
             
-            Eigen::Matrix<int8_t, Eigen::Dynamic, 1> getContacts() {
+            Eigen::Matrix<bool, Eigen::Dynamic, 1> getContacts() {
                 return contacts_;
             }
 
         private:
             // inekf_msgs::ContactArray contacts_arr;
-            Eigen::Matrix<int8_t, Eigen::Dynamic, 1> contacts_;
+            Eigen::Matrix<bool, Eigen::Dynamic, 1> contacts_;
     };
 }

@@ -1,5 +1,15 @@
 #include "system/cheetah_state.hpp"
 
+
+#include "kin/Jp_Body_to_FrontLeftFoot.h"
+#include "kin/Jp_Body_to_FrontRightFoot.h"
+#include "kin/Jp_Body_to_HindLeftFoot.h"
+#include "kin/Jp_Body_to_HindRightFoot.h"
+#include "kin/p_Body_to_FrontLeftFoot.h"
+#include "kin/p_Body_to_FrontRightFoot.h"
+#include "kin/p_Body_to_HindLeftFoot.h"
+#include "kin/p_Body_to_HindRightFoot.h"
+
 // Default Constructor
 CheetahState::CheetahState() {
     this->clear();
@@ -39,6 +49,7 @@ void CheetahState::set(const cheetah_lcm_packet_t& cheetah_data) {
     left_front_contact_  = contact_data.get()->getContacts()[1];
     right_hind_contact_  = contact_data.get()->getContacts()[2];
     left_hind_contact_   = contact_data.get()->getContacts()[3];
+
     return;
 }
 
@@ -92,31 +103,40 @@ Eigen::Vector3d CheetahState::getKinematicVelocity() const {
     Eigen::Matrix<double,12,1> e = this->getEncoderPositions();
     Eigen::Matrix<double,12,1> e_dot = this->getEncoderVelocities();
     ///TODO: figure out how to compute this later if needed
-    // if (left_contact_ == 1) {
-    //     Eigen::Vector3d pL = p_VectorNav_to_LeftToeBottom(e); // {I}_p_{IL}
-    //     Eigen::Matrix<double,3,12> J_pL = Jp_VectorNav_to_LeftToeBottom(e);
-    //     velocity = -J_pL*e_dot - skew(w)*pL; // {I}_v_{WI}
-    // } else if (right_contact_ == 1) {
-    //     Eigen::Vector3d pR = p_VectorNav_to_RightToeBottom(e); // {I}_p_{IR}
-    //     Eigen::Matrix<double,3,12> J_pR = Jp_VectorNav_to_RightToeBottom(e);
-    //     velocity = -J_pR*e_dot - skew(w)*pR; // {I}_v_{WI}
-    // } 
+    
+    if (right_front_contact_ == 1) {
+        Eigen::Vector3d pRF = p_Body_to_FrontRightFoot(e); // {I}_p_{IRF}
+        Eigen::Matrix<double,3,12> J_pRF = Jp_Body_to_FrontRightFoot(e);
+        velocity = -J_pRF*e_dot - skew(w)*pRF; // {I}_v_{WI}
+    } else if (left_front_contact_ == 1) {
+        Eigen::Vector3d pLF = p_Body_to_FrontLeftFoot(e); // {I}_p_{ILF}
+        Eigen::Matrix<double,3,12> J_pLF = Jp_Body_to_FrontLeftFoot(e);
+        velocity = -J_pLF*e_dot - skew(w)*pLF; // {I}_v_{WI}
+    } else if (right_hind_contact_ == 1) {
+        Eigen::Vector3d pRH = p_Body_to_HindRightFoot(e); // {I}_p_{IRH}
+        Eigen::Matrix<double,3,12> J_pRH = Jp_Body_to_HindRightFoot(e);
+        velocity = -J_pRH*e_dot - skew(w)*pRH; // {I}_v_{WI}
+    } else if (left_hind_contact_ == 1){
+        Eigen::Vector3d pLH = p_Body_to_HindLeftFoot(e); // {I}_p_{ILH}
+        Eigen::Matrix<double,3,12> J_pLH = Jp_Body_to_HindLeftFoot(e);
+        velocity = -J_pLH*e_dot - skew(w)*pLH; // {I}_v_{WI}
+    }
     return velocity;
 }
 
-uint8_t CheetahState::getLeftFrontContact() const {
+bool CheetahState::getLeftFrontContact() const {
     return left_front_contact_;
 }
 
-uint8_t CheetahState::getLeftHindContact() const {
+bool CheetahState::getLeftHindContact() const {
     return left_hind_contact_;
 }
 
-uint8_t CheetahState::getRightFrontContact() const {
+bool CheetahState::getRightFrontContact() const {
     return right_front_contact_;
 }
 
-uint8_t CheetahState::getRightHindContact() const {
+bool CheetahState::getRightHindContact() const {
     return right_hind_contact_;
 }
 

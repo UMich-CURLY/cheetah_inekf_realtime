@@ -7,14 +7,14 @@
 #include "sensor_msgs/JointState.h"
 
 // forward kinematics from FROST
-#include "kin/H_Body_to_FrontLeftFoot.h"
-#include "kin/H_Body_to_FrontRightFoot.h"
-#include "kin/H_Body_to_HindLeftFoot.h"
-#include "kin/H_Body_to_HindRightFoot.h"
-#include "kin/Jb_Body_to_FrontLeftFoot.h"
-#include "kin/Jb_Body_to_FrontRightFoot.h"
-#include "kin/Jb_Body_to_HindLeftFoot.h"
-#include "kin/Jb_Body_to_HindRightFoot.h"
+#include "../kin/H_Body_to_FrontLeftFoot.h"
+#include "../kin/H_Body_to_FrontRightFoot.h"
+#include "../kin/H_Body_to_HindLeftFoot.h"
+#include "../kin/H_Body_to_HindRightFoot.h"
+#include "../kin/Jb_Body_to_FrontLeftFoot.h"
+#include "../kin/Jb_Body_to_FrontRightFoot.h"
+#include "../kin/Jb_Body_to_HindLeftFoot.h"
+#include "../kin/Jb_Body_to_HindRightFoot.h"
 
 
 namespace cheetah_inekf_lcm {

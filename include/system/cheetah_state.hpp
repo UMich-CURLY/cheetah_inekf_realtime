@@ -46,10 +46,10 @@ class CheetahState {
 //         Eigen::Matrix<double,10,1> getMotorPositions() const;
 //         Eigen::Matrix<double,10,1> getMotorVelocities() const;
 //         Eigen::Matrix<double,4,1> getGRF() const;
-        uint8_t getLeftFrontContact() const;
-        uint8_t getLeftHindContact() const;
-        uint8_t getRightFrontContact() const;
-        uint8_t getRightHindContact() const;
+        bool getLeftFrontContact() const;
+        bool getLeftHindContact() const;
+        bool getRightFrontContact() const;
+        bool getRightHindContact() const;
         Eigen::Vector3d getAngularVelocity() const;
         Eigen::Vector3d getKinematicVelocity() const;
         Eigen::Vector3d getBodyVelocity() const;
@@ -102,10 +102,10 @@ class CheetahState {
         Eigen::Matrix<double, 18,1> q_;
         Eigen::Matrix<double, 18,1> dq_;
         Eigen::Matrix<double,4,1> GRF_; //!< ground reaction force
-        int8_t left_front_contact_;
-        int8_t left_hind_contact_;
-        int8_t right_front_contact_;
-        int8_t right_hind_contact_;
+        bool left_front_contact_;
+        bool left_hind_contact_;
+        bool right_front_contact_;
+        bool right_hind_contact_;
 };
 
 #endif

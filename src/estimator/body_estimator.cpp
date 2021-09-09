@@ -1,13 +1,13 @@
 #include "estimator/body_estimator.hpp"
 
-#include "H_Body_to_FrontLeftFoot.h"
-#include "H_Body_to_FrontRightFoot.h"
-#include "H_Body_to_HindLeftFoot.h"
-#include "H_Body_to_HindRightFoot.h"
-#include "Jp_Body_to_FrontLeftFoot.h"
-#include "Jp_Body_to_FrontRightFoot.h"
-#include "Jp_Body_to_HindLeftFoot.h"
-#include "Jp_Body_to_HindRightFoot.h"
+#include "kin/H_Body_to_FrontLeftFoot.h"
+#include "kin/H_Body_to_FrontRightFoot.h"
+#include "kin/H_Body_to_HindLeftFoot.h"
+#include "kin/H_Body_to_HindRightFoot.h"
+#include "kin/Jp_Body_to_FrontLeftFoot.h"
+#include "kin/Jp_Body_to_FrontRightFoot.h"
+#include "kin/Jp_Body_to_HindLeftFoot.h"
+#include "kin/Jp_Body_to_HindRightFoot.h"
 
 BodyEstimator::BodyEstimator(lcm::LCM* lcm) :
     lcm_(lcm), t_prev_(0), imu_prev_(Eigen::Matrix<double,6,1>::Zero()) {
@@ -72,7 +72,7 @@ void BodyEstimator::propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahStat
     if (dt > 0)
         filter_.Propagate(imu_prev_, dt); 
 
-    // correctKinematics(state);
+    correctKinematics(state);
 
     ///TODO: Check if imu strapdown model is correct
     inekf::RobotState estimate = filter_.getState();
@@ -83,7 +83,7 @@ void BodyEstimator::propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahStat
     Eigen::Vector3d v = estimate.getVelocity() + R*inekf::skew(w)*i_p_ib;
     state.setBaseRotation(R);
     state.setBasePosition(p);
-    state.setBaseVelocity(v);
+    state.setBaseVelocity(v); 
 
     // Store previous imu data
     t_prev_ = t;
@@ -101,12 +101,17 @@ void BodyEstimator::propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahStat
 // Assumes state contacts have been updated
 void BodyEstimator::setContacts(CheetahState& state) {
     // Update contact information
-    const double CONTACT_THRESHOLD = 1;
+    const uint8_t CONTACT_THRESHOLD = 1;
     std::vector<std::pair<int,bool>> contacts;
-    contacts.push_back(std::pair<int,bool> (0, (state.getRightFrontContact()>=CONTACT_THRESHOLD) ? true:false)); 
-    contacts.push_back(std::pair<int,bool> (1, (state.getLeftFrontContact()>=CONTACT_THRESHOLD) ? true:false)); 
-    contacts.push_back(std::pair<int,bool> (2, (state.getRightHindContact()>=CONTACT_THRESHOLD) ? true:false)); 
-    contacts.push_back(std::pair<int,bool> (3, (state.getLeftHindContact()>=CONTACT_THRESHOLD) ? true:false)); 
+    contacts.push_back(std::pair<int,bool> (0, state.getRightFrontContact())); 
+    contacts.push_back(std::pair<int,bool> (1, state.getLeftFrontContact())); 
+    contacts.push_back(std::pair<int,bool> (2, state.getRightHindContact())); 
+    contacts.push_back(std::pair<int,bool> (3, state.getLeftHindContact())); 
+
+    // std::cout<<"comparison: "<< state.getLeftFrontContact()<<std::endl;
+    // std::cout<<"Contatcs from state: \n"<<state.getRightFrontContact()<<", "<<state.getLeftFrontContact()<<", "<<state.getRightHindContact()<<", "\
+    // <<state.getLeftHindContact()<<std::endl;
+    // std::cout<<"Current Contacts: \n"<<contacts[0].second<<", "<<contacts[1].second<<", "<<contacts[2].second<<", "<<contacts[3].second<<std::endl;
     filter_.setContacts(contacts); // Set new contact states
 }
 
@@ -114,26 +119,29 @@ void BodyEstimator::setContacts(CheetahState& state) {
 void BodyEstimator::correctKinematics(CheetahState& state) {
     // Correct state based on kinematics measurements (probably in cheetah inekf ros)
     Eigen::Matrix<double,12,1> encoders = state.getEncoderPositions();
-    Eigen::Matrix4d FL = H_Body_to_FrontLeftFoot(encoders); 
-    Eigen::Matrix4d FR = H_Body_to_FrontRightFoot(encoders);
-    Eigen::Matrix4d HL = H_Body_to_HindLeftFoot(encoders); 
-    Eigen::Matrix4d HR = H_Body_to_HindRightFoot(encoders);
+
+    
+
+    Eigen::Matrix4d H_FL = H_Body_to_FrontLeftFoot(encoders); 
+    Eigen::Matrix4d H_FR = H_Body_to_FrontRightFoot(encoders);
+    Eigen::Matrix4d H_HL = H_Body_to_HindLeftFoot(encoders); 
+    Eigen::Matrix4d H_HR = H_Body_to_HindRightFoot(encoders);
     Eigen::Matrix<double,3,12> JpFL = Jp_Body_to_FrontLeftFoot(encoders);
     Eigen::Matrix<double,3,12> JpFR = Jp_Body_to_FrontRightFoot(encoders);
     Eigen::Matrix<double,3,12> JpHL = Jp_Body_to_HindLeftFoot(encoders);
     Eigen::Matrix<double,3,12> JpHR = Jp_Body_to_HindRightFoot(encoders);
-    Eigen::Matrix<double,6,6> covFL = 0.01 * Eigen::Matrix<double,6,6>::Identity();
-    Eigen::Matrix<double,6,6> covFR = 0.01 * Eigen::Matrix<double,6,6>::Identity();
-    Eigen::Matrix<double,6,6> covHL = 0.01 * Eigen::Matrix<double,6,6>::Identity();
-    Eigen::Matrix<double,6,6> covHR = 0.01 * Eigen::Matrix<double,6,6>::Identity();
+    Eigen::Matrix<double,6,6> covFL = Eigen::Matrix<double,6,6>::Identity();
+    Eigen::Matrix<double,6,6> covFR = Eigen::Matrix<double,6,6>::Identity();
+    Eigen::Matrix<double,6,6> covHL = Eigen::Matrix<double,6,6>::Identity();
+    Eigen::Matrix<double,6,6> covHR = Eigen::Matrix<double,6,6>::Identity();
     covFL.block<3,3>(3,3) = JpFL*encoder_cov_*JpFL.transpose() + prior_kinematics_cov_;
     covFR.block<3,3>(3,3) = JpFR*encoder_cov_*JpFR.transpose() + prior_kinematics_cov_;
     covHL.block<3,3>(3,3) = JpHL*encoder_cov_*JpHL.transpose() + prior_kinematics_cov_;
     covHR.block<3,3>(3,3) = JpHR*encoder_cov_*JpHR.transpose() + prior_kinematics_cov_;
-    inekf::Kinematics rightFrontFoot(0, FR, covFR);
-    inekf::Kinematics leftFrontFoot(1, FL, covFL);
-    inekf::Kinematics rightHindFoot(2, HR, covHR);
-    inekf::Kinematics leftHindFoot(3, HL, covHL);
+    inekf::Kinematics rightFrontFoot(0, H_FR, covFR);
+    inekf::Kinematics leftFrontFoot(1, H_FL, covFL);
+    inekf::Kinematics rightHindFoot(2, H_HR, covHR);
+    inekf::Kinematics leftHindFoot(3, H_HL, covHL);
     inekf::vectorKinematics kinematics;
     kinematics.push_back(rightFrontFoot);
     kinematics.push_back(leftFrontFoot);
@@ -325,7 +333,7 @@ void BodyEstimator::initBias(cheetah_lcm_packet_t& cheetah_data) {
         return;
     }
     // Initialize bias based on imu orientation and static assumption
-    if (bias_init_vec_.size() < 2000) {
+    if (bias_init_vec_.size() < 250) {
         Eigen::Vector3d w, a;
         w << cheetah_data.imu.get()->angular_velocity.x, 
              cheetah_data.imu.get()->angular_velocity.y, 
@@ -355,4 +363,51 @@ void BodyEstimator::initBias(cheetah_lcm_packet_t& cheetah_data) {
         ba0_ = avg.tail<3>();
         bias_initialized_ = true;
     }
+}
+
+void BodyEstimator::initState(const double t, const cheetah_lcm_packet_t& cheetah_data, const CheetahState& state) {
+    // Clear filter
+    filter_.clear();
+
+    // Initialize state mean
+    Eigen::Quaternion<double> quat(cheetah_data.imu.get()->orientation.w, 
+                                   cheetah_data.imu.get()->orientation.x,
+                                   cheetah_data.imu.get()->orientation.y,
+                                   cheetah_data.imu.get()->orientation.z); 
+    Eigen::Matrix3d R0 = quat.toRotationMatrix(); // Initialize based on VectorNav estimate
+    Eigen::Vector3d v0 = R0*state.getKinematicVelocity(); // initial velocity
+    // Eigen::Vector3d v0 = {0.0,0.0,0.0};
+    Eigen::Vector3d p0 = {0.0, 0.0, 0.0}; // initial position, we set imu frame as world frame
+    // .
+
+    R0 = Eigen::Matrix3d::Identity();
+    inekf::RobotState initial_state; 
+    initial_state.setRotation(R0);
+    initial_state.setVelocity(v0);
+    initial_state.setPosition(p0);
+    initial_state.setGyroscopeBias(bg0_);
+    initial_state.setAccelerometerBias(ba0_);
+
+    // Initialize state covariance
+    initial_state.setRotationCovariance(0.03*Eigen::Matrix3d::Identity());
+    initial_state.setVelocityCovariance(0.01*Eigen::Matrix3d::Identity());
+    initial_state.setPositionCovariance(0.00001*Eigen::Matrix3d::Identity());
+    initial_state.setGyroscopeBiasCovariance(0.0001*Eigen::Matrix3d::Identity());
+    initial_state.setAccelerometerBiasCovariance(0.0025*Eigen::Matrix3d::Identity());
+
+    filter_.setState(initial_state);
+    std::cout << "Robot's state mean is initialized to: \n";
+    std::cout << filter_.getState() << std::endl;
+    std::cout << "Robot's state covariance is initialized to: \n";
+    std::cout << filter_.getState().getP() << std::endl;
+
+    // Set enabled flag
+    t_prev_ = t;
+    imu_prev_ << cheetah_data.imu.get()->angular_velocity.x, 
+                cheetah_data.imu.get()->angular_velocity.y, 
+                cheetah_data.imu.get()->angular_velocity.z;
+                cheetah_data.imu.get()->linear_acceleration.x,
+                cheetah_data.imu.get()->linear_acceleration.y,
+                cheetah_data.imu.get()->linear_acceleration.z;;
+    enabled_ = true;
 }

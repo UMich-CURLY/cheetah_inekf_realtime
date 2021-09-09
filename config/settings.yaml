@@ -1,5 +1,5 @@
 settings:
-  static_bias_initialization: true
+  static_bias_initialization: false
   initialize_state_from_first_observation: false
   imu_topic: "/lcm_publisher_node/imu"
   map_frame_id : "/odom"
@@ -14,5 +14,5 @@ settings:
   contact_topic: "/lcm_publisher_node/contact"
   enable_debug_output: false
   enable_estimator_output: true
-  project_root_dir: "/home/arthuzh/CURLY/catkin_ws/src/cheetah_inekf_lcm"
+  project_root_dir: "/home/tingjun/Desktop/Cheetah_Proj/catkin_ws/src/cheetah_inekf_lcm"
   lcm_pose_channel: "CHEETAH_POSE_CHANNEL"

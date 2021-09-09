@@ -158,7 +158,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_SOURCE_DIR}/include/communication/kin
+  ${PROJECT_SOURCE_DIR}/include/kin
   ${catkin_INCLUDE_DIRS}
 )
 

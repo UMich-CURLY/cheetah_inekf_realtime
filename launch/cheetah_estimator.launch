@@ -5,11 +5,11 @@
     <node name="cheetah_inekf_lcm" pkg="cheetah_inekf_lcm" type="cheetah_estimator" output="screen" required="true" launch-prefix="gdb -ex run --args"/>
 
     <!-- Run cheetah estimator publisher -->
-    <rosparam file="$(find cheetah_inekf_lcm)/config/settings.yaml" />
+    <rosparam file="$(find cheetah_inekf_lcm)/config/settings.yaml" command="load" />
     <!-- Initialize inEKF params -->
-    <rosparam file="$(find cheetah_inekf_lcm)/config/inekf.yaml" />
+    <rosparam file="$(find cheetah_inekf_lcm)/config/inekf.yaml" command="load"/>
     <!-- Initialize inEKF noise -->
-    <rosparam file="$(find cheetah_inekf_lcm)/config/noise.yaml" />
+    <rosparam file="$(find cheetah_inekf_lcm)/config/noise.yaml" command="load"/>
     <!-- Initialize inEKF prior -->
-    <rosparam file="$(find cheetah_inekf_lcm)/config/prior.yaml" />
+    <rosparam file="$(find cheetah_inekf_lcm)/config/prior.yaml" command="load"/>
 </launch>
