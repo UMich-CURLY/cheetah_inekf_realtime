@@ -10,6 +10,7 @@
 #include "ros/ros.h"
 #include "utils/cheetah_data_t.hpp"
 #include "utils/PassiveTimeSync.h"
+#include "pose_publisher_node.hpp"
 
 // Threading
 #include <boost/thread/condition.hpp>
@@ -23,7 +24,7 @@ class CheetahSystem {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         // Default Contructor
-        CheetahSystem(lcm::LCM* lcm, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer);
+        CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer);
         // Step forward one iteration of the system
         void step();
         // // Set the current estimator
@@ -34,6 +35,12 @@ class CheetahSystem {
     private:
         // LCM handle
         lcm::LCM* lcm_;
+        // ROS NodeHandle
+        ros::NodeHandle* nh_;
+        // ROS pose publisher
+        PosePublisherNode pose_publisher_node_;
+        // ROS path publisher
+        // PathPublisherNode path_publisher_node_;
         // ROS timestamp
         ros::Time timestamp_;
         // Passive Time Synchronizer

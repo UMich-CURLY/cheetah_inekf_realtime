@@ -176,6 +176,7 @@ add_library(utils "${PROJECT_SOURCE_DIR}/src/utils/utils.cpp")
 add_library(cheetah_state "${PROJECT_SOURCE_DIR}/src/system/cheetah_state.cpp")
 add_library(cheetah_system "${PROJECT_SOURCE_DIR}/src/system/cheetah_system.cpp")
 add_library(body_estimator "${PROJECT_SOURCE_DIR}/src/estimator/body_estimator.cpp")
+add_library(pose_publisher_node "${PROJECT_SOURCE_DIR}/src/pose_publisher_node.cpp")
 
 target_link_libraries(cheetah_lcm_handler cheetah_kinematics_lcm ${LCM_LIBRARY})
 
@@ -187,6 +188,13 @@ target_link_libraries(cheetah_lcm_handler cheetah_kinematics_lcm ${LCM_LIBRARY})
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
+
+add_executable(path_publisher_node "${PROJECT_SOURCE_DIR}/src/path_publisher_node.cpp")
+target_link_libraries(path_publisher_node
+    ${catkin_LIBRARIES}
+    ${inekf_LIBRARIES}
+    ${Boost_LIBRARIES}
+)
 
 add_executable(cheetah_estimator src/cheetah_estimator.cpp )
 target_link_libraries(cheetah_estimator
@@ -200,6 +208,7 @@ target_link_libraries(cheetah_estimator
     cheetah_system
     cheetah_state
     body_estimator
+    pose_publisher_node
 )
 
 # add_executable(lcm_handler src/communication/lcm_handler.cpp )
