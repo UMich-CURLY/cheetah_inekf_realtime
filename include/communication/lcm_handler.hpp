@@ -32,18 +32,13 @@ template <unsigned int ENCODER_DIM>
 class lcm_handler {
     public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    lcm_handler(lcm::LCM* lcm, ros::NodeHandle* n, cheetah_lcm_data_t* cheetah_data_in, boost::mutex* cdata_mtx) : 
-        lcm_(lcm), nh_(n), cheetah_data_in_(cheetah_data_in), cdata_mtx_(cdata_mtx) {
+    lcm_handler(lcm::LCM* lcm, ros::NodeHandle* n, cheetah_lcm_data_t* cheetah_buffer, boost::mutex* cdata_mtx) : 
+        lcm_(lcm), nh_(n), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx) {
         assert(lcm_);  // confirm a nullptr wasn't passed in
         ROS_INFO("Cheetah_Lcm ready to initialize...."); 
 
-        // lcm_->subscribe("microstrain", &cheetah_inekf_lcm::lcm_handler<12>::imu_lcm_callback, this);
-        // lcm_->subscribe("leg_control_data", &cheetah_inekf_lcm::lcm_handler<12>::joint_state_lcm_callback, this);
-        // lcm_->subscribe("contact", &cheetah_inekf_lcm::lcm_handler<12>::contact_lcm_callback, this);
-        
         /// SYNCED:
         lcm_->subscribe("synced_proprioceptive_data", &cheetah_inekf_lcm::lcm_handler<12>::synced_msgs_lcm_callback, this);
-
 	    
 	    seq_imu_data_ = 0;
         seq_joint_state_ = 0;
@@ -55,7 +50,7 @@ class lcm_handler {
         nh_->param<double>("/inekf/encoder_std", encoder_std, 0.0174533); // 1 deg std
         nh_->param<double>("/inekf/kinematic_prior_orientation_std", kinematic_prior_orientation_std, 0.174533); // 10 deg std
         nh_->param<double>("/inekf/kinematic_prior_position_std", kinematic_prior_position_std, 0.05); // 5cm std
-        nh_->param<bool>("/settings/enable_debug_output", debug_enabled_, false);
+        nh_->param<bool>("/settings/lcm_enable_debug_output", debug_enabled_, false);
         nh_->param<std::string>("/settings/project_root_dir", project_root_dir, "../../../");
 
         //Debugging ROS messages
@@ -77,18 +72,6 @@ class lcm_handler {
         }
     }
 
-    void imu_lcm_callback(const lcm::ReceiveBuffer* rbuf,
-                        const std::string& channel_name,
-                        const imu_t* msg);
-    
-    void joint_state_lcm_callback(const lcm::ReceiveBuffer* rbuf,
-                               const std::string& channel_name,
-                               const legcontrol_t* msg);
-
-    void contact_lcm_callback(const lcm::ReceiveBuffer* rbuf,
-                               const std::string& channel_name,
-                               const contact_t* msg);
-
     void synced_msgs_lcm_callback(const lcm::ReceiveBuffer* rbuf,
                                const std::string& channel_name,
                                const synced_proprioceptive_lcmt* msg);
@@ -106,13 +89,11 @@ class lcm_handler {
     Eigen::Matrix<double,ENCODER_DIM,ENCODER_DIM> cov_encoders_;
     Eigen::Matrix<double,6,6> cov_prior_;
 
-    //std::string imu_lcm_topic, joint_state_lcm_topic, contact_lcm_topic;
-
     uint64_t seq_imu_data_;
     uint64_t seq_joint_state_;
     uint64_t seq_contact_;
 
-    cheetah_lcm_data_t* cheetah_data_in_;
+    cheetah_lcm_data_t* cheetah_buffer_;
 
     //Debugging
     bool debug_enabled_;

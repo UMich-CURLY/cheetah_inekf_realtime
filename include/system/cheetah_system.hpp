@@ -27,10 +27,6 @@ class CheetahSystem {
         CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer);
         // Step forward one iteration of the system
         void step();
-        // // Set the current estimator
-        // void setEstimator(std::shared_ptr<BodyEstimator> estimator);
-        // // Set the current controller 
-        // void setController(std::shared_ptr<ControllerBase> controller);
 
     private:
         // LCM handle
@@ -39,8 +35,6 @@ class CheetahSystem {
         ros::NodeHandle* nh_;
         // ROS pose publisher
         PosePublisherNode pose_publisher_node_;
-        // ROS path publisher
-        // PathPublisherNode path_publisher_node_;
         // ROS timestamp
         ros::Time timestamp_;
         // Passive Time Synchronizer
@@ -56,12 +50,14 @@ class CheetahSystem {
         // Most recent data packet
         cheetah_lcm_packet_t cheetah_packet_;
         // Update most recent packet to use
-        void updateNextPacket();
+        bool updateNextPacket();
         // Publish output path
         void poseCallback(const CheetahState& state_);
-        // output file
+        // Output file
         std::string file_name_;
         std::string tum_file_name_;
+        // Publish path node enable flag
+        bool enable_pose_publisher_;
 };
 
 #endif // CHEETAHSYSTEM_H
