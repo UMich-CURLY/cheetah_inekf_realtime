@@ -5,8 +5,8 @@
 #include "utils/contacts.hpp"
 #include "utils/measurement.h"
 #include "sensor_msgs/JointState.h"
-#include "inekf_msgs/ContactArray.h"
-#include "inekf_msgs/KinematicsArray.h"
+// #include "inekf_msgs/ContactArray.h"
+// #include "inekf_msgs/KinematicsArray.h"
 
 #include <memory>
 #include <queue>

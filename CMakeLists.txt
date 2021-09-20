@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
+
 project(cheetah_inekf_lcm)
 # add_compile_options(-std=c++11)
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 # add_compile_options(-O3)
 # add_compile_options(-DEIGEN_NO_DEBUG)
 # add_compile_options(-march=native)
 #set(CMAKE_CXX_STANDARD 11)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG -DEIGEN_NO_DEBUG -march=native -Wl,--no-as-needed -DBOOST_LOG_DYN_LINK -lboost_log -lpthread") #-DBOOST_LOG_DYN_LINK -lboost_log -lpthread needed for boost::log
 SET(CMAKE_CXX_COMPILER /usr/bin/g++)
@@ -26,7 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   sensor_msgs
-  inekf_msgs
+  #inekf_msgs
   message_filters
   #apriltag_msgs
 )
@@ -146,7 +149,7 @@ message("LCM_INCLUDE_DIR: " ${LCM_INCLUDE_DIRS})
 catkin_package(
    INCLUDE_DIRS include
 #  LIBRARIES invariant-ekf-lcm
-   CATKIN_DEPENDS std_msgs sensor_msgs inekf_msgs tf geometry_msgs
+   CATKIN_DEPENDS std_msgs sensor_msgs tf geometry_msgs
 #  DEPENDS system_lib
 )
 

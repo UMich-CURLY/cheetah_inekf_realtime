@@ -192,5 +192,5 @@ namespace cheetah_inekf_lcm {
 
 // } // mini_cheetah
 
-template class cheetah_inekf_lcm::KinematicsHandler<12>;
+// template class cheetah_inekf_lcm::KinematicsHandler<12>;
 template class cheetah_inekf_lcm::lcm_handler<12>;

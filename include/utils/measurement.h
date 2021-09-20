@@ -16,9 +16,9 @@
 #include <Eigen/Dense>
 #include <string>
 #include "ros/ros.h"
-#include "inekf_msgs/ContactArray.h"
-#include "inekf_msgs/KinematicsArray.h"
-#include "inekf_msgs/LandmarkArray.h"
+// #include "inekf_msgs/ContactArray.h"
+// #include "inekf_msgs/KinematicsArray.h"
+// #include "inekf_msgs/LandmarkArray.h"
 #include "InEKF.h"
 #include "tf/transform_listener.h"
 

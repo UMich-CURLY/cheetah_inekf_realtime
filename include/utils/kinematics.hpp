@@ -16,15 +16,15 @@ namespace cheetah_inekf_lcm {
                 kin_arr = kinematics;
             }
 
-            const inekf_msgs::KinematicsArray& getKinematicsArray() {
-                return kin_arr;
-            }
+            // const inekf_msgs::KinematicsArray& getKinematicsArray() {
+            //     return kin_arr;
+            // }
 
             std::vector<T> position;
             std::vector<T> velocity;
             std::vector<T> effort;
         private:
-            inekf_msgs::KinematicsArray kin_arr;
+            // inekf_msgs::KinematicsArray kin_arr;
     };
 template class cheetah_inekf_lcm::lcm_handler<12>;
 }

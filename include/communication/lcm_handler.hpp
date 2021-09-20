@@ -11,7 +11,7 @@
 
 // ROS related
 #include <ros/ros.h>
-#include "kinematics_handler.hpp"
+// #include "kinematics_handler.hpp"
 
 // LCM related
 #include <lcm/lcm-cpp.hpp>
@@ -59,10 +59,10 @@ class lcm_handler {
         nh_->param<std::string>("/settings/project_root_dir", project_root_dir, "../../../");
 
         //Debugging ROS messages
-        imu_publisher_ = nh_->advertise<sensor_msgs::Imu>("imu", 10);
-        joint_state_publisher_ = nh_->advertise<sensor_msgs::JointState>("joint_state", 10);
-        kinematics_publisher_ = nh_->advertise<inekf_msgs::KinematicsArray>("kinematics", 10);
-        contact_publisher_ = nh_->advertise<inekf_msgs::ContactArray>("contact", 10);
+        // imu_publisher_ = nh_->advertise<sensor_msgs::Imu>("imu", 10);
+        // joint_state_publisher_ = nh_->advertise<sensor_msgs::JointState>("joint_state", 10);
+        // kinematics_publisher_ = nh_->advertise<inekf_msgs::KinematicsArray>("kinematics", 10);
+        // contact_publisher_ = nh_->advertise<inekf_msgs::ContactArray>("contact", 10);
 
         cov_encoders_ = encoder_std*encoder_std*Eigen::Matrix<double,ENCODER_DIM,ENCODER_DIM>::Identity(); 
         cov_prior_ = Eigen::Matrix<double,6,6>::Identity();
@@ -96,10 +96,10 @@ class lcm_handler {
   private:
     lcm::LCM* lcm_;
     ros::NodeHandle* nh_;
-    ros::Publisher imu_publisher_;
-    ros::Publisher joint_state_publisher_;
-    ros::Publisher contact_publisher_;
-    ros::Publisher kinematics_publisher_;
+    // ros::Publisher imu_publisher_;
+    // ros::Publisher joint_state_publisher_;
+    // ros::Publisher contact_publisher_;
+    // ros::Publisher kinematics_publisher_;
 
     boost::mutex* cdata_mtx_;
 
