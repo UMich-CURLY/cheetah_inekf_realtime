@@ -50,7 +50,7 @@ bool BodyEstimator::biasInitialized() { return bias_initialized_; }
 bool BodyEstimator::enabled() { return enabled_; }
 void BodyEstimator::enableFilter() { enabled_ = true; }
 
-void BodyEstimator::propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahState& state) {
+void BodyEstimator::update(cheetah_lcm_packet_t& cheetah_data, CheetahState& state) {
     // Initialize bias from initial robot condition
     if (!bias_initialized_) {
         initBias(cheetah_data);
@@ -68,7 +68,10 @@ void BodyEstimator::propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahStat
 
     // Propagate state based on IMU and contact data
     double dt = t - t_prev_;
-    ROS_INFO("Tprev %0.6lf T %0.6lf dt %0.6lf \n", t_prev_, t, dt);
+    if(estimator_debug_enabled_){
+        ROS_INFO("Tprev %0.6lf T %0.6lf dt %0.6lf \n", t_prev_, t, dt);
+    }
+    
     if (dt > 0)
         filter_.Propagate(imu_prev_, dt); 
 
@@ -167,7 +170,7 @@ void BodyEstimator::publishPose(double time, std::string map_frame_id, uint32_t 
     Eigen::Vector3d p = estimate.getPosition();
 
     // Publish pose in LCM
-    std::cout << "Issue before read " << std::endl;
+    // std::cout << "Issue before read " << std::endl;
     pose.body[0] = p(0); pose.body[1] = p(1); pose.body[2] = p(2);
     lcm_->publish(LCM_POSE_CHANNEL, &pose);
 }

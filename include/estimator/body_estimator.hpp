@@ -28,7 +28,7 @@ class BodyEstimator {
         // void initState();
         void initState(const double t, const cheetah_lcm_packet_t& cheetah_data, const CheetahState& state);
         void setContacts(CheetahState& state);
-        void propagateIMU(cheetah_lcm_packet_t& cheetah_data, CheetahState& state);
+        void update(cheetah_lcm_packet_t& cheetah_data, CheetahState& state);
         void correctKinematics(CheetahState& state);
         inekf::InEKF getFilter() const;
         inekf::RobotState getState() const;

@@ -31,6 +31,9 @@ class PathPublisherNode {
             nh.param<std::string>("path_topic", path_topic, "/cheetah/inekf_estimation/path");
             nh.param<double>("publish_rate", publish_rate_, 1); 
             nh.param<int>("pose_skip", pose_skip_, 1); 
+
+            // std::cout<<"pose_topic: "<<pose_topic<<", path_topic: "<<path_topic<<std::endl;
+
             // Find pose frame from first message
             geometry_msgs::PoseWithCovarianceStampedConstPtr pose_msg = 
                 ros::topic::waitForMessage<geometry_msgs::PoseWithCovarianceStamped>(pose_topic, n_);
@@ -70,7 +73,7 @@ class PathPublisherNode {
             geometry_msgs::PoseStamped pose;
             pose.header = msg->header;
             pose.pose = msg->pose.pose;
-            // std::cout<<"publishing: "<<pose.pose.position.x<<", "<<pose.pose.position.y<<", "<<pose.pose.position.z<<std::endl;
+            // std::cout<<"subscribing to pose: "<<pose.pose.position.x<<", "<<pose.pose.position.y<<", "<<pose.pose.position.z<<std::endl;
             
             std::lock_guard<std::mutex> lock(poses_mutex_);
 
@@ -95,7 +98,7 @@ class PathPublisherNode {
             geometry_msgs::PoseStamped pose;
             pose.header = msg->header;
             pose.pose = msg->pose;
-            std::cout<<"publishing: "<<pose.pose.position.x<<", "<<pose.pose.position.y<<", "<<pose.pose.position.z<<std::endl;
+            // std::cout<<"publishing: "<<pose.pose.position.x<<", "<<pose.pose.position.y<<", "<<pose.pose.position.z<<std::endl;
             std::lock_guard<std::mutex> lock(poses_mutex_);
 
             // if (file_name_.size() > 0) {
@@ -116,7 +119,7 @@ class PathPublisherNode {
             path_msg.header.stamp = ros::Time::now();
             path_msg.header.frame_id = pose_frame_;
             path_msg.poses = poses_;
-            // std::cout<<"current pose: "<<path_msg.poses.back().pose.position.x<<", "<<path_msg.poses.back().pose.position.y<<", "<<path_msg.poses.back().pose.position.z<<std::endl;
+            // std::cout<<"publishing current path: "<<path_msg.poses.back().pose.position.x<<", "<<path_msg.poses.back().pose.position.y<<", "<<path_msg.poses.back().pose.position.z<<std::endl;
             
             path_pub_.publish(path_msg);
             seq_++;

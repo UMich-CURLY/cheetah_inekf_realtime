@@ -22,7 +22,8 @@ CheetahSystem::CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* c
     tum_outfile.close();
 
     // Initialize pose publishing if requested
-    nh_->param<bool>("/setttings/system_enable_pose_publisher", enable_pose_publisher_, false);
+    nh_->param<bool>("/settings/system_enable_pose_publisher", enable_pose_publisher_, false);
+
 }
 
 void CheetahSystem::step() {
@@ -33,8 +34,9 @@ void CheetahSystem::step() {
 
         if (estimator_.enabled()) {
             estimator_.setContacts(state_);
-            estimator_.propagateIMU(cheetah_packet_, state_);
-            // estimator_.correctKinematics(state_);
+
+            // estimator.update propagate and correct (if contact exists) the filter
+            estimator_.update(cheetah_packet_, state_);
 
             if (enable_pose_publisher_) {
                 pose_publisher_node_.posePublish(state_);

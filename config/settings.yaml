@@ -3,7 +3,7 @@ settings:
   imu_topic: "/lcm_publisher_node/imu"
   map_frame_id : "/odom"
   base_frame_id: "/cheetah/imu"
-  pose_topic: "/cheetah/pose"
+  pose_topic: "/cheetah/inekf_estimation/pose"
   state_topic: "/cheetah/inekf_state"
   visualization_markers_topic: "/cheetah/markers"
   enable_kinematics: true
@@ -17,7 +17,7 @@ settings:
   
   # Body Estimator
   estimator_publish_visualization_markers: true
-  estimator_enable_debug: true
+  estimator_enable_debug: false
   estimator_lcm_pose_channel: "CHEETAH_POSE_CHANNEL"
   estimator_static_bias_initialization: false
 

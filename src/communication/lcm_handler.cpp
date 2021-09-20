@@ -35,7 +35,6 @@ namespace cheetah_inekf_lcm {
 
     /// CONTACTS:
     Eigen::Matrix<bool, 4, 1> contacts;
-    std::cout << "In LCM: ";
     for (int i = 0; i < msg->num_legs; ++i) {
         std::cout << msg->contact[i];
         contacts[i] = msg->contact[i];
