@@ -19,7 +19,6 @@
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include <nav_msgs/Path.h>
 
-
 void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
 
 class PathPublisherNode {

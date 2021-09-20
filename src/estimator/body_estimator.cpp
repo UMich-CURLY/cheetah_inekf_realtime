@@ -15,11 +15,13 @@ BodyEstimator::BodyEstimator(lcm::LCM* lcm) :
     // Create private node handle
     ros::NodeHandle nh("~");
     // Set debug output
-    nh.param<bool>("/settings/enable_estimator_output", estimator_debug_enabled_, false);
+    nh.param<bool>("/settings/estimator_enable_debug", estimator_debug_enabled_, false);
     // Enable visualization publisher if requested
-    nh.param<std::string>("/settings/lcm_pose_channel", LCM_POSE_CHANNEL, "CHEETAH_POSE_CHANNEL");
-    nh.param<bool>("/settings/publish_visualization_markers", publish_visualization_markers_, false);
-    nh.param<bool>("/settings/publish_visualization_markers", publish_visualization_markers_, false);
+    nh.param<std::string>("/settings/estimator_lcm_pose_channel", LCM_POSE_CHANNEL, "CHEETAH_POSE_CHANNEL");
+    nh.param<bool>("/settings/estimator_publish_visualization_markers", 
+        lcm_publish_visualization_markers_, false);
+    // Settings
+    nh.param<bool>("/settings/estimator_static_bias_initialization", static_bias_initialization_, false);
 
     inekf::NoiseParams params;
     double std;
@@ -41,8 +43,6 @@ BodyEstimator::BodyEstimator(lcm::LCM* lcm) :
     filter_.setNoiseParams(params);
     std::cout << "Noise parameters are initialized to: \n";
     std::cout << filter_.getNoiseParams() << std::endl;
-    // Settings
-    nh.param<bool>("/settings/static_bias_initialization", static_bias_initialization_, false);
 }
 
 
@@ -108,10 +108,6 @@ void BodyEstimator::setContacts(CheetahState& state) {
     contacts.push_back(std::pair<int,bool> (2, state.getRightHindContact())); 
     contacts.push_back(std::pair<int,bool> (3, state.getLeftHindContact())); 
 
-    // std::cout<<"comparison: "<< state.getLeftFrontContact()<<std::endl;
-    // std::cout<<"Contatcs from state: \n"<<state.getRightFrontContact()<<", "<<state.getLeftFrontContact()<<", "<<state.getRightHindContact()<<", "\
-     <<state.getLeftHindContact()<<std::endl;
-    // std::cout<<"Current Contacts: \n"<<contacts[0].second<<", "<<contacts[1].second<<", "<<contacts[2].second<<", "<<contacts[3].second<<std::endl;
     filter_.setContacts(contacts); // Set new contact states
 }
 
@@ -119,8 +115,6 @@ void BodyEstimator::setContacts(CheetahState& state) {
 void BodyEstimator::correctKinematics(CheetahState& state) {
     // Correct state based on kinematics measurements (probably in cheetah inekf ros)
     Eigen::Matrix<double,12,1> encoders = state.getEncoderPositions();
-
-    
 
     Eigen::Matrix4d H_FL = H_Body_to_FrontLeftFoot(encoders); 
     Eigen::Matrix4d H_FR = H_Body_to_FrontRightFoot(encoders);
@@ -156,154 +150,9 @@ void BodyEstimator::correctKinematics(CheetahState& state) {
                 position[1], 
                 position[2]);
     }
-    if (publish_visualization_markers_) {
+    if (lcm_publish_visualization_markers_) {
         publishPose(t_prev_, "/cheetah/imu", seq_);
     }
-}
-
-
-// Publishes the output of the filter over ROS messages
-void BodyEstimator::publishMarkers(double time, std::string map_frame_id, uint32_t seq) {
-    // ROS_DEBUG("Publishing data at time: %f", time);
-    // ros::Time timestamp = ros::Time(time);
-    // static geometry_msgs::Point point_prev;
-
-    // // Extract current state estimate
-    // RobotState state = filter_.getState();
-    // Eigen::MatrixXd X = state.getWorldX();
-    // Eigen::MatrixXd P = state.getP();
-    // Eigen::Quaternion<double> orientation(X.block<3,3>(0,0));
-    // orientation.normalize();
-    // Eigen::Vector3d velocity = X.block<3,1>(0,3);
-    // Eigen::Vector3d position = X.block<3,1>(0,4);
-    // Eigen::Vector3d bg = state.getGyroscopeBias();
-    // Eigen::Vector3d ba = state.getAccelerometerBias();
-
-    // // Create and send pose message
-    // geometry_msgs::PoseWithCovarianceStamped pose_msg;
-    // pose_msg.header.seq = seq;
-    // pose_msg.header.stamp = timestamp;
-    // pose_msg.header.frame_id = map_frame_id;
-
-    // inekf_msgs::State state_msg;
-    // state_msg.header.seq = seq;
-    // state_msg.header.stamp = timestamp;
-    // state_msg.header.frame_id = map_frame_id; 
-    // state_msg.orientation.w = orientation.w();
-    // state_msg.orientation.x = orientation.x();
-    // state_msg.orientation.y = orientation.y();  
-    // state_msg.orientation.z = orientation.z();
-    // state_msg.position.x = position(0); 
-    // state_msg.position.y = position(1); 
-    // state_msg.position.z = position(2); 
-    // state_msg.velocity.x = velocity(0);   
-    // state_msg.velocity.y = velocity(1); 
-    // state_msg.velocity.z = velocity(2); 
-    // for (int i=0; i<9; ++i) {
-    //     for (int j=0; j<9; ++j) {
-    //         state_msg.covariance[9*i+j] = P(i,j);
-    //     }
-    // }
-
-    // visualization_msgs::MarkerArray markers_msg;
-
-    // // Publish pose covariance samples
-    // visualization_msgs::Marker marker_pose;
-    // marker_pose.header.frame_id = map_frame_id;
-    // marker_pose.header.stamp = timestamp;
-    // marker_pose.header.seq = seq;
-    // marker_pose.ns = "imu_pose";
-    // marker_pose.id = 0;
-    // marker_pose.type = visualization_msgs::Marker::SPHERE_LIST;
-    // marker_pose.action = visualization_msgs::Marker::ADD;
-    // marker_pose.scale.x = 0.01;
-    // marker_pose.scale.y = 0.01;
-    // marker_pose.scale.z = 0.01;
-    // marker_pose.color.a = 1.0; // Don't forget to set the alpha!
-    // marker_pose.color.r = 0.0;
-    // marker_pose.color.g = 1.0;
-    // marker_pose.color.b = 0.0;
-    // marker_pose.lifetime = ros::Duration(dt_);
-    // // Sample N points in the lie algebra and project to the manifold
-    // inekf::ErrorType error_type = filter_.getErrorType();
-    // Eigen::Matrix<double,4,4> X_pose = Eigen::Matrix<double,4,4>::Identity();
-    // X_pose.block<3,3>(0,0) = X.block<3,3>(0,0);
-    // X_pose.block<3,1>(0,3) = X.block<3,1>(0,4);
-    // Eigen::Matrix<double,6,6> P_pose;
-    // P_pose.block<3,3>(0,0) = P.block<3,3>(0,0);
-    // P_pose.block<3,3>(0,3) = P.block<3,3>(0,6);
-    // P_pose.block<3,3>(3,0) = P.block<3,3>(6,0);
-    // P_pose.block<3,3>(3,3) = P.block<3,3>(6,6);
-
-    // Eigen::MatrixXd L( P_pose.llt().matrixL() );
-    // std::default_random_engine generator;
-    // std::normal_distribution<double> distribution(0,1);
-    // const int N = 1000;
-    // for (int i=0; i<N; ++i) {
-    //     Eigen::VectorXd xi;
-    //     xi.resize(6);
-    //     for (int j=0; j<6; ++j) {
-    //         xi(j) = distribution(generator);
-    //     }
-    //     xi = (L*xi).eval(); 
-    //     Eigen::Matrix<double,4,4> X_sample = Eigen::Matrix<double,4,4>::Identity();
-    //     if (error_type == inekf::ErrorType::LeftInvariant) {
-    //         X_sample = X_pose*inekf::Exp_SEK3(xi);
-    //     } else if (error_type == inekf::ErrorType::RightInvariant) {
-    //         X_sample = inekf::Exp_SEK3(xi)*X_pose;
-    //     }
-        
-    //     geometry_msgs::Point point;
-    //     point.x = X_sample(0,3);
-    //     point.y = X_sample(1,3);
-    //     point.z = X_sample(2,3);
-    //     marker_pose.points.push_back(point);
-    // }
-    // markers_msg.markers.push_back(marker_pose);
-
-    // // Add trajectory
-    // visualization_msgs::Marker traj_marker;
-    // traj_marker.header.frame_id = map_frame_id;
-    // traj_marker.header.stamp = timestamp;
-    // traj_marker.header.seq = seq;
-    // traj_marker.ns = "trajectory";
-    // traj_marker.type = visualization_msgs::Marker::LINE_STRIP;
-    // traj_marker.action = visualization_msgs::Marker::ADD;
-    // traj_marker.id = seq;
-    // traj_marker.scale.x = 0.01;
-    // traj_marker.color.a = 1.0; // Don't forget to set the alpha!
-    // traj_marker.color.r = 1.0;
-    // traj_marker.color.g = 0.0;
-    // traj_marker.color.b = 0.0;
-    // traj_marker.lifetime = ros::Duration(100.0);
-    // geometry_msgs::Point point;
-    // point.x = position(0);
-    // point.y = position(1);
-    // point.z = position(2);
-    // if (seq_ > 0){
-    //     traj_marker.points.push_back(point_prev);
-    //     traj_marker.points.push_back(point);
-    //     markers_msg.markers.push_back(traj_marker);
-    // }   
-    // point_prev = point;
-
-    // // Publish markers
-    // visualization_pub_.publish(markers_msg);
-}
-
-// TODO: decide if we want to publish path over ROS as well as LCM
-void BodyEstimator::publishPath() {
-    if (poses_.empty()) return;
-
-    // Uses time of most recent pose as seq and stamp
-    // nav_msgs::Path path_msg;
-    // path_msg.header.seq = poses_.rbegin()->header.seq;
-    // path_msg.header.stamp = poses_.rbegin()->header.stamp;
-    // path_msg.header.frame_id = poses_.rbegin()->header.frame;
-    // path_msg.poses = poses_;
-    // std::cout<<"current pose: "<<path_msg.poses.back().pose.position.x<<", "<<path_msg.poses.back().pose.position.y<<", "<<path_msg.poses.back().pose.position.z<<std::endl;
-    
-    // path_pub_.publish(path_msg);
 }
 
 // Publish current pose over lcm & and save to ros
@@ -313,13 +162,9 @@ void BodyEstimator::publishPose(double time, std::string map_frame_id, uint32_t 
     pose.stamp = time;
     pose.frame_id = map_frame_id;
 
-    // TODO: Save pose in ROS if needed
+    // Get inekf pose estimate
     inekf::RobotState estimate = filter_.getState();
     Eigen::Vector3d p = estimate.getPosition();
-    // geometry_msgs::Point body_pos; //(p(0), p(1), p(2));
-    // body_pos.x = p(0); body_pos.y = p(1); body_pos.z = p(2);
-    // pose.pose.position = body_pos;
-    // poses_.push_back(pose);
 
     // Publish pose in LCM
     std::cout << "Issue before read " << std::endl;

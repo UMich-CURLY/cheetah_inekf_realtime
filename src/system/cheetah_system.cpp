@@ -10,51 +10,44 @@
 
 CheetahSystem::CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer): 
     lcm_(lcm), nh_(nh), ts_(0.05, 0.05), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx), estimator_(lcm), pose_publisher_node_(nh) {
-        file_name_ = "/media/jetson256g/data/inekf_result/cheetah_inekf_pose_kitti.txt";
-        tum_file_name_ = "/media/jetson256g/data/inekf_result/cheetah_inekf_pose_tum.txt";
-        std::ofstream outfile(file_name_);
-        std::ofstream tum_outfile(tum_file_name_);
-        outfile.close();
-        tum_outfile.close();
-    }
+    // Initialize inekf pose file printouts
+    nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
+        "/media/jetson256g/data/inekf_result/cheetah_inekf_pose.txt");
+    nh_->param<std::string>("/settings/system_inekf_tum_pose_filename", tum_file_name_, 
+        "/media/jetson256g/data/inekf_result/cheetah_inekf_tum_pose.txt");
+
+    std::ofstream outfile(file_name_);
+    std::ofstream tum_outfile(tum_file_name_);
+    outfile.close();
+    tum_outfile.close();
+
+    // Initialize pose publishing if requested
+    nh_->param<bool>("/setttings/system_enable_pose_publisher", enable_pose_publisher_, false);
+}
 
 void CheetahSystem::step() {
-    //Copy data to be handled in queues (lock/unlock)
-    // updateNextPacket();
+    bool hasUpdate = updateNextPacket();
 
-    //Set state using encoder data todo: create state matrices
-    //Use invariant-ekf-ros for reference on state matrices RobotState
+    if (hasUpdate) {
+        state_.set(cheetah_packet_);
 
-    cdata_mtx_->lock();
-    
-    double timestamp = cheetah_buffer_->timestamp_q.front();
-    cheetah_packet_.setTime(timestamp);
-    cheetah_packet_.imu = cheetah_buffer_->imu_q.front();
-    cheetah_packet_.joint_state = cheetah_buffer_->joint_state_q.front();
-    cheetah_packet_.contact = cheetah_buffer_->contact_q.front();
+        if (estimator_.enabled()) {
+            estimator_.setContacts(state_);
+            estimator_.propagateIMU(cheetah_packet_, state_);
+            // estimator_.correctKinematics(state_);
 
-    cheetah_buffer_->timestamp_q.pop();
-    cheetah_buffer_->imu_q.pop();
-    cheetah_buffer_->joint_state_q.pop();
-    cheetah_buffer_->contact_q.pop();
-    cdata_mtx_->unlock();
-
-    state_.set(cheetah_packet_);
-
-    if (estimator_.enabled()) {
-
-        estimator_.setContacts(state_);
-        estimator_.propagateIMU(cheetah_packet_, state_);
-        // estimator_.correctKinematics(state_);
-        pose_publisher_node_.posePublish(state_);
-        poseCallback(state_);
-    } else {
-        std::cout << "Initialized initState" << std::endl;
-        if (estimator_.biasInitialized()) {
-            estimator_.initState(cheetah_packet_.getTime(), cheetah_packet_, state_);
-            estimator_.enableFilter();
+            if (enable_pose_publisher_) {
+                pose_publisher_node_.posePublish(state_);
+                poseCallback(state_);
+            }
         } else {
-            estimator_.initBias(cheetah_packet_);
+            std::cout << "Initialized initState" << std::endl;
+            if (estimator_.biasInitialized()) {
+                estimator_.initState(cheetah_packet_.getTime(), cheetah_packet_, state_);
+                estimator_.enableFilter();
+            } else {
+                estimator_.initBias(cheetah_packet_);
+            }
         }
     }
 }
@@ -76,12 +69,28 @@ void CheetahSystem::poseCallback(const CheetahState& state_) {
 
 // Private Functions
 
-void CheetahSystem::updateNextPacket() {
-    boost::mutex::scoped_lock lock(*cdata_mtx_);
-    // Defined as the length of measurement type enum
-    std::vector<double> times(4, std::numeric_limits<double>::max());
-    double timestamp = cheetah_buffer_->timestamp_q.front();
-    cheetah_buffer_->timestamp_q.pop();
+bool CheetahSystem::updateNextPacket() {
+    //Copy data to be handled in queues (lock/unlock)
+    bool hasUpdated = false;
+    cdata_mtx_->lock();
+    if (!cheetah_buffer_->timestamp_q.empty() &&
+        !cheetah_buffer_->imu_q.empty() &&
+        !cheetah_buffer_->joint_state_q.empty() &&
+        !cheetah_buffer_->contact_q.empty()) 
+    {
+        hasUpdated = true;
+        double timestamp = cheetah_buffer_->timestamp_q.front();
+        cheetah_packet_.setTime(timestamp);
+        cheetah_packet_.imu = cheetah_buffer_->imu_q.front();
+        cheetah_packet_.joint_state = cheetah_buffer_->joint_state_q.front();
+        cheetah_packet_.contact = cheetah_buffer_->contact_q.front();
 
-    cheetah_packet_.setTime(timestamp);
+        cheetah_buffer_->timestamp_q.pop();
+        cheetah_buffer_->imu_q.pop();
+        cheetah_buffer_->joint_state_q.pop();
+        cheetah_buffer_->contact_q.pop();
+    }
+    cdata_mtx_->unlock();
+
+    return hasUpdated;
 }

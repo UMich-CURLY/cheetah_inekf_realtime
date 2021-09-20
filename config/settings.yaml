@@ -1,18 +1,27 @@
 settings:
-  static_bias_initialization: false
   initialize_state_from_first_observation: false
   imu_topic: "/lcm_publisher_node/imu"
   map_frame_id : "/odom"
   base_frame_id: "/cheetah/imu"
   pose_topic: "/cheetah/pose"
   state_topic: "/cheetah/inekf_state"
-  publish_visualization_markers: true
   visualization_markers_topic: "/cheetah/markers"
   enable_kinematics: true
   flat_ground: false
   kinematics_topic: "/lcm_publisher_node/kinematics"
   contact_topic: "/lcm_publisher_node/contact"
-  enable_debug_output: false
-  enable_estimator_output: true
-  project_root_dir: "/home/tingjun/Desktop/Cheetah_Proj/catkin_ws/src/cheetah_inekf_lcm"
-  lcm_pose_channel: "CHEETAH_POSE_CHANNEL"
+  
+  # LCM handler
+  lcm_enable_debug_output: false
+  project_root_dir: "/home/arthuzh/CURLY/catkin_ws/src/cheetah_inekf_lcm"
+  
+  # Body Estimator
+  estimator_publish_visualization_markers: true
+  estimator_enable_debug: true
+  estimator_lcm_pose_channel: "CHEETAH_POSE_CHANNEL"
+  estimator_static_bias_initialization: false
+
+  # Cheetah System
+  system_enable_pose_publisher: true
+  system_inekf_pose_filename: "/media/jetson256g/data/inekf_result/cheetah_inekf_pose_kitti.txt"
+  system_inekf_tum_pose_filename: "/media/jetson256g/data/inekf_result/cheetah_inekf_pose_tum.txt"
