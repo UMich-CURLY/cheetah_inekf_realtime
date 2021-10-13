@@ -39,7 +39,7 @@ namespace cheetah_inekf_lcm
         start_time_ = 0;
 
         nh_->param<int>("settings/leg_q_dimension", q_dim, 12);
-        nh_->param<int>("settings/leg_qd_dimension", q_dim, 12);
+        nh_->param<int>("settings/leg_qd_dimension", qd_dim, 12);
         nh_->param<int>("settings/leg_tau_dimension", tau_est_dim, 12);
         nh_->param<int>("settings/imu_acc_dimension", acc_dim, 3);
         nh_->param<int>("settings/imu_omega_dimension", omega_dim, 3);
@@ -92,26 +92,27 @@ namespace cheetah_inekf_lcm
     void lcm_handler::receiveLegControlMsg(const lcm::ReceiveBuffer *rbuf,
                                           const std::string &chan,
                                           const leg_control_data_lcmt *msg)
-    {
+    {   
+        std::cout << "Received leg data" << std::endl;
         if (start_time_ == 0)
         {
             start_time_ = rbuf->recv_utime;
         }
-        if (cheetah_buffer_->joint_state_q.size() <= cheetah_buffer_->contact_q.size())
-        {
-            // std::shared_ptr<LcmLegStruct> leg_control_data = std::make_shared<LcmLegStruct>();
-            std::shared_ptr<JointStateMeasurement> joint_state_ptr = std::shared_ptr<JointStateMeasurement>(new JointStateMeasurement(q_dim));
+        // if (cheetah_buffer_->joint_state_q.size() <= cheetah_buffer_->contact_q.size())
+        // {
+        //     // std::shared_ptr<LcmLegStruct> leg_control_data = std::make_shared<LcmLegStruct>();
+        std::shared_ptr<JointStateMeasurement> joint_state_ptr = std::shared_ptr<JointStateMeasurement>(new JointStateMeasurement(q_dim));
 
-            /// LEG:
-            joint_state_ptr.get()->joint_position = Eigen::Map<const Eigen::MatrixXf>(msg->q, q_dim, 1).cast<double>();
-            joint_state_ptr.get()->joint_velocity = Eigen::Map<const Eigen::MatrixXf>(msg->qd, qd_dim, 1).cast<double>();
-            joint_state_ptr.get()->joint_effort = Eigen::Map<const Eigen::MatrixXf>(msg->tau_est, tau_est_dim, 1).cast<double>();
+        /// LEG:
+        joint_state_ptr.get()->joint_position = Eigen::Map<const Eigen::MatrixXf>(msg->q, q_dim, 1).cast<double>();
+        joint_state_ptr.get()->joint_velocity = Eigen::Map<const Eigen::MatrixXf>(msg->qd, qd_dim, 1).cast<double>();
+        joint_state_ptr.get()->joint_effort = Eigen::Map<const Eigen::MatrixXf>(msg->tau_est, tau_est_dim, 1).cast<double>();
 
-            /// LOW: 500Hz version:
-            boost::mutex::scoped_lock lock(*cdata_mtx_);
-            cheetah_buffer_->joint_state_q.push(joint_state_ptr);
+        /// LOW: 500Hz version:
+        boost::mutex::scoped_lock lock(*cdata_mtx_);
+        cheetah_buffer_->joint_state_q.push(joint_state_ptr);
 
-        }
+        // }
     }
 
     void lcm_handler::receiveMicrostrainMsg(const lcm::ReceiveBuffer *rbuf,
@@ -119,6 +120,7 @@ namespace cheetah_inekf_lcm
                                            const microstrain_lcmt *msg)
     {
         /// LOW: 500Hz version:
+        std::cout << "Received IMU data" << std::endl;
         if (start_time_ == 0)
         {
             start_time_ = rbuf->recv_utime;
@@ -213,6 +215,7 @@ namespace cheetah_inekf_lcm
                                                 const std::string &chan,
                                                 const wbc_test_data_t *msg)
     {
+        std::cout << "Received contact data" << std::endl;
         std::shared_ptr<ContactsMeasurement> contact_ptr = std::shared_ptr<ContactsMeasurement>(new ContactsMeasurement);
         
         /// CONTACTS:
