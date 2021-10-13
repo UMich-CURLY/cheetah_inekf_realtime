@@ -4,10 +4,12 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
-
+#include <stdlib.h>
+#include <limits.h>
 // Utility types
 #include "utils/cheetah_data_t.hpp"
 #include "sensor_msgs/Imu.h"
+#include "yaml-cpp/yaml.h"
 
 // ROS related
 #include <ros/ros.h>
@@ -15,9 +17,13 @@
 
 // LCM related
 #include <lcm/lcm-cpp.hpp>
-#include "lcm-types/cheetah_inekf_lcm/imu_t.hpp"
-#include "lcm-types/cheetah_inekf_lcm/legcontrol_t.hpp"
-#include "lcm-types/cheetah_inekf_lcm/contact_t.hpp"
+// #include "lcm-types/cheetah_inekf_lcm/imu_t.hpp"
+// #include "lcm-types/cheetah_inekf_lcm/legcontrol_t.hpp"
+// #include "lcm-types/cheetah_inekf_lcm/contact_t.hpp"
+
+#include "lcm-types/cheetah_inekf_lcm/microstrain_lcmt.hpp"
+#include "lcm-types/cheetah_inekf_lcm/leg_control_data_lcmt.hpp"
+#include "lcm-types/cheetah_inekf_lcm/wbc_test_data_t.hpp"
 #include "lcm-types/cheetah_inekf_lcm/synced_proprioceptive_lcmt.hpp"
 
 // Threading
@@ -28,54 +34,36 @@
 
 namespace cheetah_inekf_lcm {
 
-template <unsigned int ENCODER_DIM>
 class lcm_handler {
     public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    lcm_handler(lcm::LCM* lcm, ros::NodeHandle* n, cheetah_lcm_data_t* cheetah_buffer, boost::mutex* cdata_mtx) : 
-        lcm_(lcm), nh_(n), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx) {
-        assert(lcm_);  // confirm a nullptr wasn't passed in
-        ROS_INFO("Cheetah_Lcm ready to initialize...."); 
-
-        /// SYNCED:
-        lcm_->subscribe("synced_proprioceptive_data", &cheetah_inekf_lcm::lcm_handler<12>::synced_msgs_lcm_callback, this);
-	    
-	    seq_imu_data_ = 0;
-        seq_joint_state_ = 0;
-        seq_contact_ = 0;
-
-        //Set private variables
-        double encoder_std, kinematic_prior_orientation_std, kinematic_prior_position_std;
-        std::string project_root_dir;
-        nh_->param<double>("/inekf/encoder_std", encoder_std, 0.0174533); // 1 deg std
-        nh_->param<double>("/inekf/kinematic_prior_orientation_std", kinematic_prior_orientation_std, 0.174533); // 10 deg std
-        nh_->param<double>("/inekf/kinematic_prior_position_std", kinematic_prior_position_std, 0.05); // 5cm std
-        nh_->param<bool>("/settings/lcm_enable_debug_output", debug_enabled_, false);
-        nh_->param<std::string>("/settings/project_root_dir", project_root_dir, "../../../");
-
-        //Debugging ROS messages
-        // imu_publisher_ = nh_->advertise<sensor_msgs::Imu>("imu", 10);
-        // joint_state_publisher_ = nh_->advertise<sensor_msgs::JointState>("joint_state", 10);
-        // kinematics_publisher_ = nh_->advertise<inekf_msgs::KinematicsArray>("kinematics", 10);
-        // contact_publisher_ = nh_->advertise<inekf_msgs::ContactArray>("contact", 10);
-
-        cov_encoders_ = encoder_std*encoder_std*Eigen::Matrix<double,ENCODER_DIM,ENCODER_DIM>::Identity(); 
-        cov_prior_ = Eigen::Matrix<double,6,6>::Identity();
-        cov_prior_.block<3,3>(0,0) = kinematic_prior_orientation_std*kinematic_prior_orientation_std*Eigen::Matrix<double,3,3>::Identity();
-        cov_prior_.block<3,3>(3,3) = kinematic_prior_position_std*kinematic_prior_position_std*Eigen::Matrix<double,3,3>::Identity();
-
-        ROS_INFO("Cheetah_Lcm initialized."); 
-        if (debug_enabled_) {
-            std::cout << project_root_dir << "/tests/kinematics/lcmlog.out" << '\n';
-            kinematics_debug_.open(project_root_dir + "/tests/kinematics/lcmlog.out");
-            assert(kinematics_debug_.is_open());
-        }
-    }
+    lcm_handler(lcm::LCM* lcm, ros::NodeHandle* n, cheetah_lcm_data_t* cheetah_buffer, boost::mutex* cdata_mtx);
+    
+    ~lcm_handler();
 
     void synced_msgs_lcm_callback(const lcm::ReceiveBuffer* rbuf,
                                const std::string& channel_name,
                                const synced_proprioceptive_lcmt* msg);
-  
+    
+    void receiveLegControlMsg(const lcm::ReceiveBuffer *rbuf,
+                                        const std::string &chan,
+                                        const leg_control_data_lcmt *msg);
+
+    void receiveLegControlMsg_Fast(const lcm::ReceiveBuffer *rbuf,
+                                        const std::string &chan,
+                                        const leg_control_data_lcmt *msg);
+
+    void receiveMicrostrainMsg(const lcm::ReceiveBuffer *rbuf,
+                                           const std::string &chan,
+                                           const microstrain_lcmt *msg);
+
+    void receiveMicrostrainMsg_Fast(const lcm::ReceiveBuffer *rbuf,
+                                            const std::string &chan,
+                                            const microstrain_lcmt *msg);         
+
+    void receiveContactGroundTruthMsg(const lcm::ReceiveBuffer *rbuf,
+                                                const std::string &chan,
+                                                const wbc_test_data_t *msg);                                                       
   private:
     lcm::LCM* lcm_;
     ros::NodeHandle* nh_;
@@ -86,7 +74,7 @@ class lcm_handler {
 
     boost::mutex* cdata_mtx_;
 
-    Eigen::Matrix<double,ENCODER_DIM,ENCODER_DIM> cov_encoders_;
+    Eigen::Matrix<double,12,12> cov_encoders_;
     Eigen::Matrix<double,6,6> cov_prior_;
 
     uint64_t seq_imu_data_;
@@ -98,6 +86,22 @@ class lcm_handler {
     //Debugging
     bool debug_enabled_;
     std::ofstream kinematics_debug_;
+
+    int64_t start_time_; //<! the starting time of the interface
+    YAML::Node config_; //<! load interface config file
+    
+    /// Dimensions for sensor input:
+    // leg_control_data:
+    int q_dim;
+    int qd_dim;
+    int p_dim;
+    int v_dim;
+    int tau_est_dim;
+    // microstrain:
+    int acc_dim;
+    int omega_dim;
+    int quat_dim;
+    int rpy_dim;
 };
 
 } // namespace mini_cheetah

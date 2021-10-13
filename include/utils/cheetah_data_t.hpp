@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <queue>
+#include <stack>
 
 #include <boost/circular_buffer.hpp>
 
@@ -22,6 +23,7 @@ struct cheetah_lcm_data_t {
     std::queue<std::shared_ptr<cheetah_inekf_lcm::ImuMeasurement<double>>> imu_q;
     std::queue<std::shared_ptr<cheetah_inekf_lcm::JointStateMeasurement>> joint_state_q;
     std::queue<std::shared_ptr<cheetah_inekf_lcm::ContactsMeasurement>> contact_q;
+    std::stack<std::shared_ptr<cheetah_inekf_lcm::JointStateMeasurement>> joint_state_stack;
     std::queue<double> timestamp_q;
 
 };

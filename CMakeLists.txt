@@ -54,6 +54,7 @@ find_package(Boost 1.58 REQUIRED COMPONENTS system)
 include_directories(${Boost_INCLUDE_DIRS})
 message("Boost_INCLUDE_DIR: " ${Boost_INCLUDE_DIRS})
 
+
 find_package(lcm REQUIRED)
 if (LCM_FOUND)
     include_directories(${LCM_INCLUDE_DIRS})
