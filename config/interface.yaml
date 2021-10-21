@@ -1,6 +1,0 @@
-# This file saves parameter that you need to modify accordingly in order to run the lcm-cnn interface
-program_path: "/home/tingjun/Desktop/mini_cheetah/catkin_ws/src/cheetah_inekf_lcm/"
-
-
-
-debug_flag: 1 # 1 for enable debugging mode, 0 for disable

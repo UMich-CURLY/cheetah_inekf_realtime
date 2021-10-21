@@ -10,6 +10,8 @@ This project is the wrapper of invariant-ekf for MiniCheetah. It takes input fro
 6. Change `estimator_static_bias_initialization` param in config/settings.yaml to true if you want to initialize static bias for the IMU 
 7. Change `system_enable_pose_publisher` param in config/settings.yaml to true if you want to save the robot pose to file and publish the robot pose over ROS
 8. Change `system_inekf_pose_filename` and `system_inekf_tum_pose_filename` params in config/settings.yaml to a different filepath to specify which files you would like the robot poses to be saved to (the second is a tum syntax)
+9. Change `run_synced` params in config/settings.yaml to `true` if you have a synced message channel that contains contact estimation results; Otherwise, leave it as `false`
+10. Change all `lcm_*_channel` params in config/settings.yaml to the corresponding channels your robot is publishing
 
 ## Helpful Commands:
 
