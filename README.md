@@ -21,8 +21,9 @@ This project is the wrapper of invariant-ekf for MiniCheetah. It takes input fro
 1. cd ~/pathto/catkin_ws
 2. In a new terminal in the catkin_ws, do catkin_make (perhaps multiple times)
 3. Run `source ~/devel/setup.bash`
-5. In the same terminal, run `rosrun cheetah_inekf_lcm cheetah_estimator`
-6. Run `lcm file lcm-logplayer --speed=1.0 --lcm-url=udpm://239.255.76.67:7667?ttl=2 NAME_OF_LCM_LOG_FILE_HERE`
+4. Open a new terminal and run `roscore`
+5. In the previous terminal, run `rosrun cheetah_inekf_lcm cheetah_estimator`
+6. Run `lcm-logplayer-gui NAME_OF_LCM_LOG_FILE_HERE`
 7. The terminal should begin printing out the robot state if the settings.yaml output variables are enabled
 
 ### Debugging Inekf Output
