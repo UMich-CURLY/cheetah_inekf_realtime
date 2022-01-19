@@ -12,7 +12,7 @@ PosePublisherNode::PosePublisherNode(ros::NodeHandle* n) : n_(n) {
     nh.param<int>("pose_skip", pose_skip_, 0); 
     first_pose_ = {0, 0, 0};
     // first_pose_ = pose_from_csv_.front();
-    std::cout<<"first pose is: "<<first_pose_[0]<<", "<<first_pose_[1]<<", "<<first_pose_[2]<<std::endl;
+    // std::cout<<"first pose is: "<<first_pose_[0]<<", "<<first_pose_[1]<<", "<<first_pose_[2]<<std::endl;
     pose_frame_ = pose_frame;
     
     pose_pub_ = n_->advertise<geometry_msgs::PoseWithCovarianceStamped>(pose_topic, 1000);
