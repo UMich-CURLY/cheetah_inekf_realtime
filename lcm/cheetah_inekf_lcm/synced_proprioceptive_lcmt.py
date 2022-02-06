@@ -9,12 +9,10 @@ except ImportError:
     from io import BytesIO
 import struct
 
-import bool
-
 class synced_proprioceptive_lcmt(object):
     __slots__ = ["num_legs", "timestamp", "contact", "q", "qd", "p", "v", "tau_est", "quat", "rpy", "omega", "acc", "good_packets", "bad_packets"]
 
-    __typenames__ = ["int8_t", "double", "bool", "float", "float", "float", "float", "float", "float", "float", "float", "float", "int64_t", "int64_t"]
+    __typenames__ = ["int8_t", "double", "boolean", "float", "float", "float", "float", "float", "float", "float", "float", "float", "int64_t", "int64_t"]
 
     __dimensions__ = [None, None, ["num_legs"], [12], [12], [12], [12], [12], [4], [3], [3], [3], None, None]
 
@@ -42,9 +40,7 @@ class synced_proprioceptive_lcmt(object):
 
     def _encode_one(self, buf):
         buf.write(struct.pack(">bd", self.num_legs, self.timestamp))
-        for i0 in range(self.num_legs):
-            assert self.contact[i0]._get_packed_fingerprint() == bool._get_packed_fingerprint()
-            self.contact[i0]._encode_one(buf)
+        buf.write(struct.pack('>%db' % self.num_legs, *self.contact[:self.num_legs]))
         buf.write(struct.pack('>12f', *self.q[:12]))
         buf.write(struct.pack('>12f', *self.qd[:12]))
         buf.write(struct.pack('>12f', *self.p[:12]))
@@ -69,9 +65,7 @@ class synced_proprioceptive_lcmt(object):
     def _decode_one(buf):
         self = synced_proprioceptive_lcmt()
         self.num_legs, self.timestamp = struct.unpack(">bd", buf.read(9))
-        self.contact = []
-        for i0 in range(self.num_legs):
-            self.contact.append(bool._decode_one(buf))
+        self.contact = map(bool, struct.unpack('>%db' % self.num_legs, buf.read(self.num_legs)))
         self.q = struct.unpack('>12f', buf.read(48))
         self.qd = struct.unpack('>12f', buf.read(48))
         self.p = struct.unpack('>12f', buf.read(48))
@@ -88,8 +82,7 @@ class synced_proprioceptive_lcmt(object):
     _hash = None
     def _get_hash_recursive(parents):
         if synced_proprioceptive_lcmt in parents: return 0
-        newparents = parents + [synced_proprioceptive_lcmt]
-        tmphash = (0xafeadf0f142a783f+ bool._get_hash_recursive(newparents)) & 0xffffffffffffffff
+        tmphash = (0xe5b50cf5e957c239) & 0xffffffffffffffff
         tmphash  = (((tmphash<<1)&0xffffffffffffffff) + (tmphash>>63)) & 0xffffffffffffffff
         return tmphash
     _get_hash_recursive = staticmethod(_get_hash_recursive)

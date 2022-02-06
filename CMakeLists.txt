@@ -192,8 +192,8 @@ target_link_libraries(cheetah_lcm_handler cheetah_kinematics_lcm ${LCM_LIBRARY})
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 
-add_executable(path_publisher_node "${PROJECT_SOURCE_DIR}/src/path_publisher_node.cpp")
-target_link_libraries(path_publisher_node
+add_executable(path_publisher_cheetah_node "${PROJECT_SOURCE_DIR}/src/path_publisher_cheetah_node.cpp")
+target_link_libraries(path_publisher_cheetah_node
     ${catkin_LIBRARIES}
     ${inekf_LIBRARIES}
     ${Boost_LIBRARIES}
