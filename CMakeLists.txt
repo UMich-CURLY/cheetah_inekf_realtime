@@ -29,7 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   sensor_msgs
-  #inekf_msgs
+  inekf_msgs
   message_filters
   #apriltag_msgs
 )
