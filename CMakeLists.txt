@@ -149,7 +149,7 @@ message("LCM_INCLUDE_DIR: " ${LCM_INCLUDE_DIRS})
 catkin_package(
    INCLUDE_DIRS include
 #  LIBRARIES invariant-ekf-lcm
-   CATKIN_DEPENDS std_msgs sensor_msgs tf geometry_msgs
+   CATKIN_DEPENDS std_msgs sensor_msgs tf geometry_msgs inekf_msgs
 #  DEPENDS system_lib
 )
 

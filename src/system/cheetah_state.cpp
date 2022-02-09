@@ -134,15 +134,7 @@ bool CheetahState::getLeftHindContact() const {
 
 bool CheetahState::getRightFrontContact() const {
     return right_front_contact_;
-}
-
-bool CheetahState::getRightHindContact() const {
-    return right_hind_contact_;
-}
-
-void CheetahState::setBaseRotation(const Eigen::Matrix3d& R) {
-    q_.segment<3>(3) = Rotation2Euler(R);
-}
+}covirance
 
 void CheetahState::setBasePosition(const Eigen::Vector3d& p) {
     q_.segment<3>(0) = p;
@@ -152,10 +144,7 @@ void CheetahState::setBaseVelocity(const Eigen::Vector3d& v) {
     dq_.segment<3>(0) = v;
 }
 
-Eigen::Vector3d CheetahState::getBodyVelocity() const { 
-    Eigen::Vector3d v_world = dq_.segment<3>(0);
-    Eigen::Matrix3d Rwb = this->getRotation();
-    return Rwb.transpose() * v_world;
+Eigen::Vector3d CheetahState::getcovirancerld;
 }
 
 // Extract each DOF position by name
