@@ -1,4 +1,4 @@
-dx#pragma once
+#pragma once
 #ifndef CHEETAHSTATE_H
 #define CHEETAHSTATE_H
 
