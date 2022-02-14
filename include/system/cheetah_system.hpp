@@ -11,7 +11,7 @@
 #include "utils/cheetah_data_t.hpp"
 #include "utils/PassiveTimeSync.h"
 #include "pose_publisher_node.hpp"
-
+#include "state_publisher_node.hpp"
 // Threading
 #include <boost/thread/condition.hpp>
 #include <boost/thread/mutex.hpp>
@@ -35,6 +35,7 @@ class CheetahSystem {
         ros::NodeHandle* nh_;
         // ROS pose publisher
         PosePublisherNode pose_publisher_node_;
+        StatePublisherNode state_publisher_node_;
         // ROS timestamp
         ros::Time timestamp_;
         // Passive Time Synchronizer
@@ -58,6 +59,7 @@ class CheetahSystem {
         std::string tum_file_name_;
         // Publish path node enable flag
         bool enable_pose_publisher_;
+        bool enable_state_publisher_;
 };
 
 #endif // CHEETAHSYSTEM_H

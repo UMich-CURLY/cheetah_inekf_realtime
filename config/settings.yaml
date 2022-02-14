@@ -23,5 +23,6 @@ settings:
 
   # Cheetah System
   system_enable_pose_publisher: true
+  system_enable_state_publisher: true
   system_inekf_pose_filename: "/media/jetson256g/data/inekf_result/cheetah_inekf_pose_kitti.txt"
   system_inekf_tum_pose_filename: "/media/jetson256g/data/inekf_result/cheetah_inekf_pose_tum.txt"

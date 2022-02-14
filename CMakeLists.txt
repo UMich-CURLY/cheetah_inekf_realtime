@@ -180,7 +180,9 @@ add_library(cheetah_state "${PROJECT_SOURCE_DIR}/src/system/cheetah_state.cpp")
 add_library(cheetah_system "${PROJECT_SOURCE_DIR}/src/system/cheetah_system.cpp")
 add_library(body_estimator "${PROJECT_SOURCE_DIR}/src/estimator/body_estimator.cpp")
 add_library(pose_publisher_node "${PROJECT_SOURCE_DIR}/src/pose_publisher_node.cpp")
+add_library(state_publisher_node "${PROJECT_SOURCE_DIR}/src/state_publisher_node.cpp")
 
+# target_link_libraries(state_publisher_node inekf_msgs)
 target_link_libraries(cheetah_lcm_handler cheetah_kinematics_lcm ${LCM_LIBRARY})
 
 ## Add cmake target dependencies of the library
@@ -212,6 +214,7 @@ target_link_libraries(cheetah_estimator
     cheetah_state
     body_estimator
     pose_publisher_node
+    state_publisher_node
 )
 
 # add_executable(lcm_handler src/communication/lcm_handler.cpp )

@@ -9,7 +9,7 @@
 #include <numeric>
 
 CheetahSystem::CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer): 
-    lcm_(lcm), nh_(nh), ts_(0.05, 0.05), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx), estimator_(lcm), pose_publisher_node_(nh) {
+    lcm_(lcm), nh_(nh), ts_(0.05, 0.05), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx), estimator_(lcm), pose_publisher_node_(nh),state_publisher_node_(nh) {
     // Initialize inekf pose file printouts
     nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
         "/media/jetson256g/data/inekf_result/cheetah_inekf_pose.txt");
@@ -23,6 +23,7 @@ CheetahSystem::CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* c
 
     // Initialize pose publishing if requested
     nh_->param<bool>("/settings/system_enable_pose_publisher", enable_pose_publisher_, false);
+    nh_->param<bool>("/settings/system_enable_state_publisher", enable_state_publisher_, false);
 
 }
 
@@ -41,6 +42,9 @@ void CheetahSystem::step() {
             if (enable_pose_publisher_) {
                 pose_publisher_node_.posePublish(state_);
                 poseCallback(state_);
+            }
+            if (enable_state_publisher_) {
+                state_publisher_node_.statePublish(state_);
             }
         } else {
             std::cout << "Initialized initState" << std::endl;

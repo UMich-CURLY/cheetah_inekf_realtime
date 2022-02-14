@@ -4,17 +4,16 @@ StatePublisherNode::StatePublisherNode(ros::NodeHandle* n) : n_(n) {
     // Create private node handle
     ros::NodeHandle nh("~");
     // std::string pose_csv_file, init_rot_file;
-    std::string pose_topic, pose_frame;
+    std::string state_topic, state_frame;
 
-    nh.param<std::string>("pose_topic", state_topic, "/cheetah/inekf_estimation/pose");
-    nh.param<std::string>("pose_frame", state_frame, "/odom");
+    nh.param<std::string>("state_topic", state_topic, "/cheetah/inekf_estimation/inekf_state");
+    nh.param<std::string>("state_frame", state_frame, "/odom");
     nh.param<double>("publish_rate", publish_rate_, 1000); 
-    nh.param<int>("pose_skip", pose_skip_, 0); 
     first_pose_ = {0, 0, 0};
     // first_pose_ = pose_from_csv_.front();
     // std::cout<<"first pose is: "<<first_pose_[0]<<", "<<first_pose_[1]<<", "<<first_pose_[2]<<std::endl;
     state_frame_ = state_frame;
-    
+    state_pub_ = n_->advertise<inekf_msgs::State>(state_topic, 1000);
     //pose_pub_ = n_->advertise<geometry_msgs::PoseWithCovarianceStamped>(pose_topic, 1000);
     // this->pose_publishing_thread_ = std::thread([this]{this->posePublishingThread();});
 }
@@ -24,7 +23,7 @@ StatePublisherNode::~StatePublisherNode() {}
 // Publishes pose
 void StatePublisherNode::statePublish(const CheetahState& state_) {
     // inekf message header
-    inekf_msgs::State state_msg;
+    inekf_msgs::State state_msgs;
     state_msgs.header.seq = seq_;
     state_msgs.header.stamp = ros::Time::now();
     state_msgs.header.frame_id = state_frame_;
@@ -36,15 +35,19 @@ void StatePublisherNode::statePublish(const CheetahState& state_) {
     state_msgs.orientation.z = state_.getQuaternion().z();
 
     //get position
-    state_msg.position.x = state_.x() - first_pose_[0];
-    state_msg.position.y = state_.y() - first_pose_[1];
-    state_msg.position.z = state_.z() - first_pose_[2];
+    state_msgs.position.x = state_.x() - first_pose_[0];
+    state_msgs.position.y = state_.y() - first_pose_[1];
+    state_msgs.position.z = state_.z() - first_pose_[2];
 
     //get velocity
-    state_msg.velocity.x = dx();
-    state_msg.velocity.y = dy();
-    state_msg.velocity.z = dz();
+    state_msgs.velocity.x = state_.dx();
+    state_msgs.velocity.y = state_.dy();
+    state_msgs.velocity.z = state_.dz();
 
+
+    //publish state
+    state_pub_.publish(state_msgs);
+    seq_++;
     // // covirance
     // for (int i=0; i<9; ++i) {
     //     for (int j=0; j<9; ++j) {
@@ -73,6 +76,7 @@ void StatePublisherNode::statePublish(const CheetahState& state_) {
     // state_pub_.publish(state_msg);
     // state_pub_.publish(pose_msg);
     // seq_++;
+
 }
 
 
