@@ -1,5 +1,5 @@
 #include "communication/lcm_handler.hpp"
-
+#include <iostream>
 namespace cheetah_inekf_lcm {
 
   template <unsigned int ENCODER_DIM>
@@ -15,7 +15,6 @@ namespace cheetah_inekf_lcm {
     
     /// TIMESTAMP:
     double timestamp = msg->timestamp;
-
     /// IMU:
     imu_measurement_ptr.get()->orientation.w = msg->quat[0];
     imu_measurement_ptr.get()->orientation.x = msg->quat[1];

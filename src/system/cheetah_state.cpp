@@ -201,7 +201,7 @@ double CheetahState::dleftHindMotor1() const { return dq_(15); }
 double CheetahState::dleftHindMotor2() const { return dq_(16); }
 double CheetahState::dleftHindMotor3() const { return dq_(17); }
 Eigen::MatrixXd CheetahState::P() const { return P_; }
-
+double CheetahState::getTime() const {return time_;}
 // Print out state information
 std::ostream& operator<<(std::ostream& os, const  CheetahState& obj) {
     os << "q: [";

@@ -88,6 +88,7 @@ void BodyEstimator::update(cheetah_lcm_packet_t& cheetah_data, CheetahState& sta
     state.setBasePosition(p);
     state.setBaseVelocity(v); 
     state.setCovarianceMatrix(filter_.getState().getP());
+    state.setTime(t);
     // Store previous imu data
     t_prev_ = t;
     imu_prev_ = imu;

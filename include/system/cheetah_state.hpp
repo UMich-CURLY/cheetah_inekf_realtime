@@ -96,11 +96,14 @@ class CheetahState {
         double dleftHindMotor1() const;
         double dleftHindMotor2() const;
         double dleftHindMotor3() const;
-
+        
         //extract robot covariance
         Eigen::MatrixXd P() const;
         friend std::ostream& operator<<(std::ostream& os, const  CheetahState& obj);  
 
+        //get and set time
+        void setTime(double time) { time_ = time; }
+        double getTime() const;
     private:
         Eigen::Matrix<double, 18,1> q_;
         Eigen::Matrix<double, 18,1> dq_;
@@ -110,6 +113,7 @@ class CheetahState {
         bool left_hind_contact_;
         bool right_front_contact_;
         bool right_hind_contact_;
+        double time_;
 };
 
 #endif

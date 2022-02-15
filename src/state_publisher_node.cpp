@@ -25,6 +25,10 @@ void StatePublisherNode::statePublish(const CheetahState& state_) {
     // inekf message header
     inekf_msgs::State state_msgs;
     state_msgs.header.seq = seq_;
+
+    // ros::Time().fromSec(timestamp)
+    double timestamp = state_.getTime();
+    std::cout<<timestamp <<std::endl;
     state_msgs.header.stamp = ros::Time::now();
     state_msgs.header.frame_id = state_frame_;
 
