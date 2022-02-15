@@ -30,6 +30,7 @@ class CheetahState {
         void setBaseRotation(const Eigen::Matrix3d& R);
         void setBasePosition(const Eigen::Vector3d& p);
         void setBaseVelocity(const Eigen::Vector3d& v);
+        void setCovarianceMatrix(const Eigen::MatrixXd& P);
 //         void setMotorPositions(const Eigen::Matrix<double,10,1>& qM);
 //         void setMotorVelocities(const Eigen::Matrix<double,10,1>& dqM);
         void clear();
@@ -96,12 +97,15 @@ class CheetahState {
         double dleftHindMotor2() const;
         double dleftHindMotor3() const;
 
+        //extract robot covariance
+        Eigen::MatrixXd P() const;
         friend std::ostream& operator<<(std::ostream& os, const  CheetahState& obj);  
 
     private:
         Eigen::Matrix<double, 18,1> q_;
         Eigen::Matrix<double, 18,1> dq_;
         Eigen::Matrix<double,4,1> GRF_; //!< ground reaction force
+        Eigen::MatrixXd P_; //covariance
         bool left_front_contact_;
         bool left_hind_contact_;
         bool right_front_contact_;

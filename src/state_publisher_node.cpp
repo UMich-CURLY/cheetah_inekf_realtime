@@ -45,15 +45,20 @@ void StatePublisherNode::statePublish(const CheetahState& state_) {
     state_msgs.velocity.z = state_.dz();
 
 
+   
+
+    // covirance
+    Eigen::MatrixXd P = state_.P();
+    
+    for (int i=0; i<9; ++i) {
+        for (int j=0; j<9; ++j) {
+            state_msgs.covariance[9*i+j] = P(i,j);
+        }
+    }
+
     //publish state
     state_pub_.publish(state_msgs);
     seq_++;
-    // // covirance
-    // for (int i=0; i<9; ++i) {
-    //     for (int j=0; j<9; ++j) {
-    //         state_msg.covariance[9*i+j] = P(i,j);
-    //     }
-    // }
 
     //for contact 
     // inekf_msgs::VectorWithId contact_leftFront;

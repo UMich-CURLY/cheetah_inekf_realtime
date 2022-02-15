@@ -97,6 +97,7 @@ Eigen::Matrix<double,12,1> CheetahState::getEncoderVelocities() const {
     return dq_.segment<12>(6); //<! take 12 elements start from idx = 6
 }
 
+
 Eigen::Vector3d CheetahState::getKinematicVelocity() const {
     Eigen::Vector3d velocity = Eigen::Vector3d::Zero();
     Eigen::Vector3d w = this->getAngularVelocity();
@@ -151,7 +152,9 @@ void CheetahState::setBasePosition(const Eigen::Vector3d& p) {
 void CheetahState::setBaseVelocity(const Eigen::Vector3d& v) {
     dq_.segment<3>(0) = v;
 }
-
+void CheetahState::setCovarianceMatrix(const Eigen::MatrixXd& P){
+    P_ = P;
+}
 Eigen::Vector3d CheetahState::getBodyVelocity() const { 
     Eigen::Vector3d v_world = dq_.segment<3>(0);
     Eigen::Matrix3d Rwb = this->getRotation();
@@ -197,7 +200,7 @@ double CheetahState::drightHindMotor3() const { return dq_(14); }
 double CheetahState::dleftHindMotor1() const { return dq_(15); }
 double CheetahState::dleftHindMotor2() const { return dq_(16); }
 double CheetahState::dleftHindMotor3() const { return dq_(17); }
-
+Eigen::MatrixXd CheetahState::P() const { return P_; }
 
 // Print out state information
 std::ostream& operator<<(std::ostream& os, const  CheetahState& obj) {
