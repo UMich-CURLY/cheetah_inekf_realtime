@@ -4,16 +4,18 @@ StatePublisherNode::StatePublisherNode(ros::NodeHandle* n) : n_(n) {
     // Create private node handle
     ros::NodeHandle nh("~");
     // std::string pose_csv_file, init_rot_file;
-    std::string state_topic, state_frame;
+    std::string state_topic, state_frame,velocity_topic;
 
     nh.param<std::string>("state_topic", state_topic, "/cheetah/inekf_estimation/inekf_state");
-    nh.param<std::string>("state_frame", state_frame, "/odom");
+    nh.param<std::string>("velocity_topic", velocity_topic, "/cheetah/inekf_estimation/inekf_velocity");
+    nh.param<std::string>("state_frame", state_frame, "odom");
     nh.param<double>("publish_rate", publish_rate_, 1000); 
     first_pose_ = {0, 0, 0};
     // first_pose_ = pose_from_csv_.front();
     // std::cout<<"first pose is: "<<first_pose_[0]<<", "<<first_pose_[1]<<", "<<first_pose_[2]<<std::endl;
     state_frame_ = state_frame;
     state_pub_ = n_->advertise<inekf_msgs::State>(state_topic, 1000);
+    velocity_pub_ = n_->advertise<geometry_msgs::TwistStamped>(velocity_topic, 1000);
     //pose_pub_ = n_->advertise<geometry_msgs::PoseWithCovarianceStamped>(pose_topic, 1000);
     // this->pose_publishing_thread_ = std::thread([this]{this->posePublishingThread();});
 }
@@ -64,6 +66,16 @@ void StatePublisherNode::statePublish(const CheetahState& state_) {
     state_pub_.publish(state_msgs);
     seq_++;
 
+    geometry_msgs::TwistStamped twist_msgs;
+    twist_msgs.header.stamp = ros::Time::now();
+    twist_msgs.header.frame_id = state_frame_;
+    twist_msgs.twist.linear.x = state_.dx();
+    twist_msgs.twist.linear.y = state_.dy();
+    twist_msgs.twist.linear.z = state_.dz();
+    twist_msgs.twist.angular.x = state_.droll();
+    twist_msgs.twist.angular.y = state_.dpitch();
+    twist_msgs.twist.angular.z = state_.dyaw();
+    velocity_pub_.publish(twist_msgs);
     //for contact 
     // inekf_msgs::VectorWithId contact_leftFront;
     // contact_rightFront.id = 0

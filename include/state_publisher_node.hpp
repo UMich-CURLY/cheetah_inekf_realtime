@@ -11,6 +11,7 @@
 #include <Eigen/Dense>
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include <nav_msgs/Path.h>
+#include <geometry_msgs/TwistStamped.h>
 #include "inekf_msgs/State.h"
 class StatePublisherNode{
     public:
@@ -23,6 +24,7 @@ class StatePublisherNode{
     private:
         ros::NodeHandle* n_;
         ros::Publisher state_pub_;
+        ros::Publisher velocity_pub_;
         std::string state_frame_;
         uint32_t seq_ = 0;
         double publish_rate_;
