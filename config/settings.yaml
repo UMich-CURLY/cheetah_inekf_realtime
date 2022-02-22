@@ -14,6 +14,26 @@ settings:
   # LCM handler
   lcm_enable_debug_output: false
   project_root_dir: "/home/arthuzh/CURLY/catkin_ws/src/cheetah_inekf_lcm"
+  mode: "normal" # normal is 500 Hz
+  run_synced: true # change to true if you have a set of synced message channel which contains contact estimation results 
+
+  lcm_leg_channel: "leg_control_data" # contains q, qd, p, v, tau data
+  lcm_imu_channel: "microstrain" # contains acceleration, omega, rpy, quaternion data
+  lcm_contact_channel: "contact" # Instead, "wbc_lcm_data" is offered by MIT, use gait cycle to obtain estimated contact states
+  lcm_output_channel: "synced_proprioceptive_data" # the channel that publishes a set of synced message 
+
+  leg_q_dimension: 12
+  leg_qd_dimension: 12
+  leg_p_dimension: 12
+  leg_v_dimension: 12
+  leg_tau_dimension: 12
+
+  imu_acc_dimension: 3
+  imu_omega_dimension: 3
+  imu_rpy_dimension: 3
+  imu_quat_dimension: 4
+
+  num_legs: 4
   
   # Body Estimator
   estimator_publish_visualization_markers: true
