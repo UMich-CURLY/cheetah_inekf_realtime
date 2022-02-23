@@ -104,6 +104,9 @@ class CheetahState {
         //get and set time
         void setTime(double time) { time_ = time; }
         double getTime() const;
+        ros::Time getRosTime() const;
+        //set basetime_
+        void setBasetime(ros::Time base) {basetime_ = base;}
     private:
         Eigen::Matrix<double, 18,1> q_;
         Eigen::Matrix<double, 18,1> dq_;
@@ -114,6 +117,8 @@ class CheetahState {
         bool right_front_contact_;
         bool right_hind_contact_;
         double time_;
+        ros::Time basetime_;
+
 };
 
 #endif

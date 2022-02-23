@@ -216,3 +216,6 @@ std::ostream& operator<<(std::ostream& os, const  CheetahState& obj) {
     } 
     os << obj.dq_(obj.dq_.rows()-1) << "]";
 }
+ros::Time CheetahState::getRosTime() const {
+    return basetime_ + ros::Duration(getTime());
+}

@@ -29,9 +29,8 @@ void StatePublisherNode::statePublish(const CheetahState& state_) {
     state_msgs.header.seq = seq_;
 
     // ros::Time().fromSec(timestamp)
-    double timestamp = state_.getTime();
-    std::cout<<timestamp <<std::endl;
-    state_msgs.header.stamp = ros::Time::now();
+    //double timestamp = state.
+    state_msgs.header.stamp = state_.getRosTime();
     state_msgs.header.frame_id = state_frame_;
 
     // get orientation

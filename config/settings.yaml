@@ -15,7 +15,7 @@ settings:
   lcm_enable_debug_output: false
   project_root_dir: "/home/arthuzh/CURLY/catkin_ws/src/cheetah_inekf_lcm"
   mode: "normal" # normal is 500 Hz
-  run_synced: true # change to true if you have a set of synced message channel which contains contact estimation results 
+  run_synced: false # change to true if you have a set of synced message channel which contains contact estimation results 
 
   lcm_leg_channel: "leg_control_data" # contains q, qd, p, v, tau data
   lcm_imu_channel: "microstrain" # contains acceleration, omega, rpy, quaternion data
@@ -44,5 +44,6 @@ settings:
   # Cheetah System
   system_enable_pose_publisher: true
   system_enable_state_publisher: true
+  system_enable_time_match: false
   system_inekf_pose_filename: "/media/jetson256g/data/inekf_result/cheetah_inekf_pose_kitti.txt"
   system_inekf_tum_pose_filename: "/media/jetson256g/data/inekf_result/cheetah_inekf_pose_tum.txt"
