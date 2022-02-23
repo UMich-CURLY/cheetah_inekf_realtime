@@ -33,8 +33,8 @@ CheetahSystem::CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* c
     matched_ = false;
     updated_ = false;
     buffered_ = false;
-    timestamp_ = ros::Time(1630968850.898508728 - 1.08527);
-    std::cout<<timestamp_ << std::endl;
+    //timestamp_ = ros::Time(1630968850.898508728 - 1.08527);
+    //std::cout<<timestamp_ << std::endl;
 }
 
 void CheetahSystem::step() {
@@ -114,6 +114,7 @@ bool CheetahSystem::updateNextPacket() {
 
 //time sync callback
 void CheetahSystem::timesyncCallback(const sensor_msgs::Imu::ConstPtr& imu_message){
+    //keep a buffer of imu message from rosbag
     if (updated_ == true && buffered_ == false){
         imu_buffer_.header.stamp = imu_message->header.stamp;
         imu_buffer_.angular_velocity = imu_message->angular_velocity;
@@ -122,6 +123,7 @@ void CheetahSystem::timesyncCallback(const sensor_msgs::Imu::ConstPtr& imu_messa
         buffered_ = true;
     }
     const double epsilon = 0.000001;
+    //compare current lcm message with imubuffer
     if (matched_ == false && updated_ == true){
         bool match = true;
         if (fabs(cheetah_packet_.imu->angular_velocity.x- imu_buffer_.angular_velocity.x) > epsilon){
@@ -132,10 +134,13 @@ void CheetahSystem::timesyncCallback(const sensor_msgs::Imu::ConstPtr& imu_messa
             match = false;
         }
         if (match == true){
+            //if they match basetimestamp will be matching rosbag time - matching cheetah state timestamp
             std::cout <<"find matching time - >> " << state_.getTime()<< std::endl;
             std::cout << "rostime matching - >> " << imu_buffer_.header.stamp << std::endl;
+            matched_ = true;
+            timestamp_ = imu_buffer_.header.stamp - ros::Duration(state_.getTime());
         }
-        timestamp_ = imu_buffer_.header.stamp;
+
        
     }
 
