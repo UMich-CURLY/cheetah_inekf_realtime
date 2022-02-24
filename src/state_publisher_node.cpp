@@ -9,6 +9,9 @@ StatePublisherNode::StatePublisherNode(ros::NodeHandle* n) : n_(n) {
     nh.param<std::string>("state_topic", state_topic, "/cheetah/inekf_estimation/inekf_state");
     nh.param<std::string>("velocity_topic", velocity_topic, "/cheetah/inekf_estimation/inekf_velocity");
     nh.param<std::string>("state_frame", state_frame, "odom");
+
+    nh.param<bool>("/settings/system_enable_time_match",enable_time_match_,false);
+    std::cout <<"time match:"  << enable_time_match_ << std::endl;
     nh.param<double>("publish_rate", publish_rate_, 1000); 
     first_pose_ = {0, 0, 0};
     // first_pose_ = pose_from_csv_.front();
@@ -30,7 +33,15 @@ void StatePublisherNode::statePublish(const CheetahState& state_) {
 
     // ros::Time().fromSec(timestamp)
     //double timestamp = state.
-    state_msgs.header.stamp = state_.getRosTime();
+    if (enable_time_match_ == true){
+        state_msgs.header.stamp = state_.getRosTime();
+        //std::cout <<"time match:"  << enable_time_match_ << std::endl;
+
+    }else{
+        state_msgs.header.stamp = ros::Time::now();
+                std::cout <<"time match:"  << enable_time_match_ << std::endl;
+
+    }
     state_msgs.header.frame_id = state_frame_;
 
     // get orientation

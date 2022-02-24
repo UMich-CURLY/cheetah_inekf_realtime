@@ -31,5 +31,6 @@ class StatePublisherNode{
         std::mutex poses_mutex_;
         std::array<float,3> first_pose_;
         std::thread state_publishing_thread_;
+        bool enable_time_match_;
 };
 

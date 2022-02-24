@@ -1,8 +1,8 @@
 settings:
   initialize_state_from_first_observation: false
   imu_topic: "/lcm_publisher_node/imu"
-  map_frame_id : "/odom"
-  base_frame_id: "/cheetah/imu"
+  map_frame_id : "odom"
+  base_frame_id: "/minicheetah/imu_data"
   pose_topic: "/cheetah/inekf_estimation/pose"
   state_topic: "/cheetah/inekf_state"
   visualization_markers_topic: "/cheetah/markers"

@@ -64,12 +64,17 @@ class CheetahSystem {
         std::string tum_file_name_;
         // Publish path node enable flag
         bool enable_pose_publisher_;
+        //enable state publish flag
         bool enable_state_publisher_;
+        //enable lcm and ros time match flag
         bool enable_time_match_;
+        // flag check if time alreadt matched=
         bool matched_;
+        //flag indicate lcm already recieve data 
         bool updated_;
+        //flag indicate imu message from rosbag already buffered.
         bool buffered_;
-        // ros imu message buffer 
+        // ros imu message buffer for time sync`
         sensor_msgs::Imu imu_buffer_;
 };
 
