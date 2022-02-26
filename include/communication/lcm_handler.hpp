@@ -32,6 +32,12 @@
 #include <boost/thread/thread.hpp>
 #include <boost/circular_buffer.hpp>
 
+//Ros message type
+#include <sensor_msgs/Imu.h>
+#include "sensor_msgs/JointState.h"
+#include "inekf_msgs/ContactArray.h"
+#include "inekf_msgs/Contact.h"
+
 namespace cheetah_inekf_lcm {
 
 class lcm_handler {
@@ -67,9 +73,9 @@ class lcm_handler {
   private:
     lcm::LCM* lcm_;
     ros::NodeHandle* nh_;
-    // ros::Publisher imu_publisher_;
-    // ros::Publisher joint_state_publisher_;
-    // ros::Publisher contact_publisher_;
+    ros::Publisher imu_publisher_;
+    ros::Publisher joint_state_publisher_;
+    ros::Publisher contact_publisher_;
     // ros::Publisher kinematics_publisher_;
 
     boost::mutex* cdata_mtx_;
@@ -102,6 +108,7 @@ class lcm_handler {
     int omega_dim;
     int quat_dim;
     int rpy_dim;
+    
 };
 
 } // namespace mini_cheetah
