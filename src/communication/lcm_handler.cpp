@@ -20,8 +20,6 @@ namespace cheetah_inekf_lcm
         nh_->param<std::string>("settings/lcm_imu_channel", lcm_imu_channel, "microstrain");
         nh_->param<std::string>("settings/lcm_contact_channel", contact_ground_truth, "contact_data");
         nh_->param<bool>("settings/run_synced", run_synced, false);
-
-
         if (!run_synced && mode == "normal")
         {
             lcm_->subscribe(lcm_leg_channel, &cheetah_inekf_lcm::lcm_handler::receiveLegControlMsg, this);
@@ -77,7 +75,10 @@ namespace cheetah_inekf_lcm
             kinematics_debug_.open(project_root_dir + "/tests/kinematics/lcmlog.out");
             assert(kinematics_debug_.is_open());
         }
-
+        //imu and joints states convert to ROS
+        imu_publisher_ = nh_->advertise<sensor_msgs::Imu>("Imu_realtime", 1);
+        joint_state_publisher_ = nh_->advertise<sensor_msgs::JointState>("JointState_realtime", 1);
+        contact_publisher_ = nh_->advertise<inekf_msgs::ContactArray>("Contacts_realtime", 1);
     }
 
     lcm_handler::~lcm_handler() {}
@@ -105,6 +106,18 @@ namespace cheetah_inekf_lcm
             cheetah_buffer_->joint_state_q.push(joint_state_ptr);
 
         }
+        seq_joint_state_++;
+        sensor_msgs::JointState joint_state_msg;
+        joint_state_msg.header.seq = seq_joint_state_;
+        joint_state_msg.header.stamp = ros::Time::now();
+        joint_state_msg.header.frame_id = "/minicheetah/joint_state";
+        std::vector<double> joint_position(msg->q, msg->q + sizeof(msg->q)/sizeof(msg->q[0]));
+        std::vector<double> joint_velocity(msg->qd, msg->qd + sizeof(msg->qd)/sizeof(msg->qd[0]));
+        std::vector<double> joint_effort(msg->tau_est, msg->tau_est + sizeof(msg->tau_est)/sizeof(msg->tau_est[0]));
+        joint_state_msg.position = joint_position;
+        joint_state_msg.velocity = joint_velocity;
+        joint_state_msg.effort = joint_effort;
+        joint_state_publisher_.publish(joint_state_msg);
     }
 
     void lcm_handler::receiveMicrostrainMsg(const lcm::ReceiveBuffer *rbuf,
@@ -139,6 +152,23 @@ namespace cheetah_inekf_lcm
             cheetah_buffer_->timestamp_q.push(timestamp);
             cheetah_buffer_->imu_q.push(imu_measurement_ptr);
         }
+        // publish ros message
+        seq_imu_data_++;
+        sensor_msgs::Imu imu_msg;
+        imu_msg.header.seq = seq_imu_data_;
+        imu_msg.header.stamp = ros::Time::now();
+        imu_msg.header.frame_id = "/minicheetah/imu_data";
+        imu_msg.orientation.w = msg->quat[0];
+        imu_msg.orientation.x = msg->quat[1];
+        imu_msg.orientation.y = msg->quat[2];
+        imu_msg.orientation.z = msg->quat[3];
+        imu_msg.angular_velocity.x = msg->omega[0];
+        imu_msg.angular_velocity.y = msg->omega[1];
+        imu_msg.angular_velocity.z = msg->omega[2];
+        imu_msg.linear_acceleration.x = msg->acc[0];
+        imu_msg.linear_acceleration.y = msg->acc[1];
+        imu_msg.linear_acceleration.z = msg->acc[2];
+        imu_publisher_.publish(imu_msg);     
 
     }
 
@@ -158,6 +188,25 @@ namespace cheetah_inekf_lcm
         contact_ptr->setContacts(contacts);
         boost::mutex::scoped_lock lock(*cdata_mtx_);
         cheetah_buffer_->contact_q.push(contact_ptr);
+
+        //Ros contact message
+        seq_contact_++;
+        inekf_msgs::ContactArray contact_msg;
+        contact_msg.header.seq = seq_contact_;
+        contact_msg.header.stamp = ros::Time::now();
+        contact_msg.header.frame_id = "/minicheetah/contact";
+
+        std::vector<inekf_msgs::Contact> contacts_r;
+
+        for (int i = 0; i < 4; i++)
+        {
+            inekf_msgs::Contact ct;
+            ct.id = i;
+            ct.indicator =  msg->contact[i] > 0;
+            contacts_r.push_back(ct);
+        }
+        contact_msg.contacts = contacts_r;
+        contact_publisher_.publish(contact_msg);
     }
 
     void lcm_handler::synced_msgs_lcm_callback(const lcm::ReceiveBuffer *rbuf,

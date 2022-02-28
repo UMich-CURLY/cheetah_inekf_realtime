@@ -9,13 +9,12 @@
 #include <numeric>
 
 CheetahSystem::CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer): 
-    lcm_(lcm), nh_(nh), ts_(0.05, 0.05), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx), estimator_(lcm), pose_publisher_node_(nh) {
+    lcm_(lcm), nh_(nh), ts_(0.05, 0.05), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx), estimator_(lcm), pose_publisher_node_(nh),state_publisher_node_(nh) {
     // Initialize inekf pose file printouts
     nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
         "/media/jetson256g/data/inekf_result/cheetah_inekf_pose.txt");
     nh_->param<std::string>("/settings/system_inekf_tum_pose_filename", tum_file_name_, 
         "/media/jetson256g/data/inekf_result/cheetah_inekf_tum_pose.txt");
-
     std::ofstream outfile(file_name_);
     std::ofstream tum_outfile(tum_file_name_);
     outfile.close();
@@ -23,13 +22,26 @@ CheetahSystem::CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* c
 
     // Initialize pose publishing if requested
     nh_->param<bool>("/settings/system_enable_pose_publisher", enable_pose_publisher_, false);
+    nh_->param<bool>("/settings/system_enable_state_publisher", enable_state_publisher_, false);
+    nh_->param<bool>("/settings/system_enable_time_match",enable_time_match_,false);
 
+    //set up ros subscriber 
+    // TODO: change subscribe topic to a parameter
+    if (enable_time_match_){
+        rosbag_subscriber_ = nh->subscribe("/Imu", 1000,  &CheetahSystem::timesyncCallback, this);
+    }
+    matched_ = false;
+    updated_ = false;
+    buffered_ = false;
+    //timestamp_ = ros::Time(1630968850.898508728 - 1.08527);
+    //std::cout<<timestamp_ << std::endl;
 }
 
 void CheetahSystem::step() {
     bool hasUpdate = updateNextPacket();
 
     if (hasUpdate) {
+        updated_ = true;
         state_.set(cheetah_packet_);
 
         if (estimator_.enabled()) {
@@ -37,10 +49,13 @@ void CheetahSystem::step() {
 
             // estimator.update propagate and correct (if contact exists) the filter
             estimator_.update(cheetah_packet_, state_);
-
+            state_.setBasetime(timestamp_);
             if (enable_pose_publisher_) {
                 pose_publisher_node_.posePublish(state_);
                 poseCallback(state_);
+            }
+            if (enable_state_publisher_) {
+                state_publisher_node_.statePublish(state_);
             }
         } else {
             std::cout << "Initialized initState" << std::endl;
@@ -95,4 +110,38 @@ bool CheetahSystem::updateNextPacket() {
     cdata_mtx_->unlock();
 
     return hasUpdated;
+}
+
+//time sync callback
+void CheetahSystem::timesyncCallback(const sensor_msgs::Imu::ConstPtr& imu_message){
+    //keep a buffer of imu message from rosbag
+    if (updated_ == true && buffered_ == false){
+        imu_buffer_.header.stamp = imu_message->header.stamp;
+        imu_buffer_.angular_velocity = imu_message->angular_velocity;
+        std::cout <<"lcm_time" << state_.getTime()<< std::endl;
+        std::cout << "ros_time"  << imu_buffer_.header.stamp << std::endl;
+        buffered_ = true;
+    }
+    const double epsilon = 0.000001;
+    //compare current lcm message with imubuffer
+    if (matched_ == false && updated_ == true){
+        bool match = true;
+        if (fabs(cheetah_packet_.imu->angular_velocity.x- imu_buffer_.angular_velocity.x) > epsilon){
+            match = false;
+        }else if (fabs(cheetah_packet_.imu->angular_velocity.y - imu_buffer_.angular_velocity.y) > epsilon){
+            match = false;
+        }else if (fabs(cheetah_packet_.imu->angular_velocity.z - imu_buffer_.angular_velocity.z) > epsilon){
+            match = false;
+        }
+        if (match == true){
+            //if they match basetimestamp will be matching rosbag time - matching cheetah state timestamp
+            std::cout <<"find matching time - >> " << state_.getTime()<< std::endl;
+            std::cout << "rostime matching - >> " << imu_buffer_.header.stamp << std::endl;
+            matched_ = true;
+            timestamp_ = imu_buffer_.header.stamp - ros::Duration(state_.getTime());
+        }
+
+       
+    }
+
 }

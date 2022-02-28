@@ -1,21 +1,23 @@
 #include "pose_publisher_node.hpp"
-
 PosePublisherNode::PosePublisherNode(ros::NodeHandle* n) : n_(n) {
     // Create private node handle
     ros::NodeHandle nh("~");
     // std::string pose_csv_file, init_rot_file;
-    std::string pose_topic, pose_frame;
+    std::string pose_topic, pose_frame,base_frame_id;
 
     nh.param<std::string>("pose_topic", pose_topic, "/cheetah/inekf_estimation/pose");
-    nh.param<std::string>("pose_frame", pose_frame, "/odom");
+    nh.param<std::string>("pose_frame", pose_frame, "odom");
+    nh.param<std::string>("base_frame_id", base_frame_id, "/minicheetah/imu_data");
     nh.param<double>("publish_rate", publish_rate_, 1000); 
     nh.param<int>("pose_skip", pose_skip_, 0); 
     first_pose_ = {0, 0, 0};
     // first_pose_ = pose_from_csv_.front();
     // std::cout<<"first pose is: "<<first_pose_[0]<<", "<<first_pose_[1]<<", "<<first_pose_[2]<<std::endl;
     pose_frame_ = pose_frame;
-    
+    base_frame_id_ = base_frame_id;
     pose_pub_ = n_->advertise<geometry_msgs::PoseWithCovarianceStamped>(pose_topic, 1000);
+    nh.param<bool>("/settings/system_enable_time_match",enable_time_match_,false);
+
     // this->pose_publishing_thread_ = std::thread([this]{this->posePublishingThread();});
 }
 
@@ -28,7 +30,11 @@ void PosePublisherNode::posePublish(const CheetahState& state_) {
 
     geometry_msgs::PoseWithCovarianceStamped pose_msg;
     pose_msg.header.seq = seq_;
-    pose_msg.header.stamp = ros::Time::now();
+    if (enable_time_match_ == true){
+        pose_msg.header.stamp = state_.getRosTime();
+    }else{
+        pose_msg.header.stamp = ros::Time::now();
+    }
     pose_msg.header.frame_id = pose_frame_;
     pose_msg.pose.pose.position.x = state_.x() - first_pose_[0];
     pose_msg.pose.pose.position.y = state_.y() - first_pose_[1];
@@ -40,6 +46,11 @@ void PosePublisherNode::posePublish(const CheetahState& state_) {
     // std::cout<<"publishing: "<<pose_msg.pose.pose.position.x<<", "<<pose_msg.pose.pose.position.y<<", "<<pose_msg.pose.pose.position.z<<std::endl;
     pose_pub_.publish(pose_msg);
     seq_++;
+
+    tf::Transform imu_pose;
+    imu_pose.setRotation( tf::Quaternion(state_.getQuaternion().x(),state_.getQuaternion().y(),state_.getQuaternion().z(),state_.getQuaternion().w()) );
+    imu_pose.setOrigin( tf::Vector3(pose_msg.pose.pose.position.x,pose_msg.pose.pose.position.y,pose_msg.pose.pose.position.z) );
+    tf_broadcaster_.sendTransform(tf::StampedTransform(imu_pose, pose_msg.header.stamp , pose_frame_, base_frame_id_));
 }
 
 

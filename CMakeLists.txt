@@ -29,7 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   sensor_msgs
-  #inekf_msgs
+  inekf_msgs
   message_filters
   #apriltag_msgs
 )
@@ -149,7 +149,7 @@ message("LCM_INCLUDE_DIR: " ${LCM_INCLUDE_DIRS})
 catkin_package(
    INCLUDE_DIRS include
 #  LIBRARIES invariant-ekf-lcm
-   CATKIN_DEPENDS std_msgs sensor_msgs tf geometry_msgs
+   CATKIN_DEPENDS std_msgs sensor_msgs tf geometry_msgs inekf_msgs
 #  DEPENDS system_lib
 )
 
@@ -180,7 +180,9 @@ add_library(cheetah_state "${PROJECT_SOURCE_DIR}/src/system/cheetah_state.cpp")
 add_library(cheetah_system "${PROJECT_SOURCE_DIR}/src/system/cheetah_system.cpp")
 add_library(body_estimator "${PROJECT_SOURCE_DIR}/src/estimator/body_estimator.cpp")
 add_library(pose_publisher_node "${PROJECT_SOURCE_DIR}/src/pose_publisher_node.cpp")
+add_library(state_publisher_node "${PROJECT_SOURCE_DIR}/src/state_publisher_node.cpp")
 
+# target_link_libraries(state_publisher_node inekf_msgs)
 target_link_libraries(cheetah_lcm_handler cheetah_kinematics_lcm ${LCM_LIBRARY})
 
 ## Add cmake target dependencies of the library
@@ -192,8 +194,8 @@ target_link_libraries(cheetah_lcm_handler cheetah_kinematics_lcm ${LCM_LIBRARY})
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 
-add_executable(path_publisher_node "${PROJECT_SOURCE_DIR}/src/path_publisher_node.cpp")
-target_link_libraries(path_publisher_node
+add_executable(path_publisher_cheetah_node "${PROJECT_SOURCE_DIR}/src/path_publisher_cheetah_node.cpp")
+target_link_libraries(path_publisher_cheetah_node
     ${catkin_LIBRARIES}
     ${inekf_LIBRARIES}
     ${Boost_LIBRARIES}
@@ -212,6 +214,7 @@ target_link_libraries(cheetah_estimator
     cheetah_state
     body_estimator
     pose_publisher_node
+    state_publisher_node
 )
 
 # add_executable(lcm_handler src/communication/lcm_handler.cpp )

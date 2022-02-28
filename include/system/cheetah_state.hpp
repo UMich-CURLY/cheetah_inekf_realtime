@@ -30,6 +30,7 @@ class CheetahState {
         void setBaseRotation(const Eigen::Matrix3d& R);
         void setBasePosition(const Eigen::Vector3d& p);
         void setBaseVelocity(const Eigen::Vector3d& v);
+        void setCovarianceMatrix(const Eigen::MatrixXd& P);
 //         void setMotorPositions(const Eigen::Matrix<double,10,1>& qM);
 //         void setMotorVelocities(const Eigen::Matrix<double,10,1>& dqM);
         void clear();
@@ -95,17 +96,29 @@ class CheetahState {
         double dleftHindMotor1() const;
         double dleftHindMotor2() const;
         double dleftHindMotor3() const;
-
+        
+        //extract robot covariance
+        Eigen::MatrixXd P() const;
         friend std::ostream& operator<<(std::ostream& os, const  CheetahState& obj);  
 
+        //get and set time
+        void setTime(double time) { time_ = time; }
+        double getTime() const;
+        ros::Time getRosTime() const;
+        //set basetime_
+        void setBasetime(ros::Time base) {basetime_ = base;}
     private:
         Eigen::Matrix<double, 18,1> q_;
         Eigen::Matrix<double, 18,1> dq_;
         Eigen::Matrix<double,4,1> GRF_; //!< ground reaction force
+        Eigen::MatrixXd P_; //covariance
         bool left_front_contact_;
         bool left_hind_contact_;
         bool right_front_contact_;
         bool right_hind_contact_;
+        double time_;
+        ros::Time basetime_;
+
 };
 
 #endif

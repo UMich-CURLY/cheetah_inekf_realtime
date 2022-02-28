@@ -11,6 +11,7 @@
 #include <Eigen/Dense>
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include <nav_msgs/Path.h>
+#include "tf/transform_broadcaster.h"
 
 class PosePublisherNode{
     public:
@@ -24,6 +25,7 @@ class PosePublisherNode{
         ros::NodeHandle* n_;
         ros::Publisher pose_pub_;
         std::string pose_frame_;
+        std::string base_frame_id_;
         uint32_t seq_ = 0;
         double publish_rate_;
         int pose_skip_;
@@ -32,5 +34,8 @@ class PosePublisherNode{
         std::vector<geometry_msgs::PoseStamped> poses_;
         std::mutex poses_mutex_;
         std::thread pose_publishing_thread_;
+        tf::TransformBroadcaster tf_broadcaster_;
+        bool enable_time_match_;
+
 };
 

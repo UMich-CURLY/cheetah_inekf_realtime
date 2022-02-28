@@ -11,12 +11,14 @@
 #include "utils/cheetah_data_t.hpp"
 #include "utils/PassiveTimeSync.h"
 #include "pose_publisher_node.hpp"
-
+#include "state_publisher_node.hpp"
 // Threading
 #include <boost/thread/condition.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/circular_buffer.hpp>
+// imu message
+#include <sensor_msgs/Imu.h>
 
 // TODO: Singleton design pattern (there should only be one CheetahSystem)
 class CheetahSystem {
@@ -27,7 +29,6 @@ class CheetahSystem {
         CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer);
         // Step forward one iteration of the system
         void step();
-
     private:
         // LCM handle
         lcm::LCM* lcm_;
@@ -35,6 +36,9 @@ class CheetahSystem {
         ros::NodeHandle* nh_;
         // ROS pose publisher
         PosePublisherNode pose_publisher_node_;
+        StatePublisherNode state_publisher_node_;
+        //ROS Imu Subscriber
+        ros::Subscriber rosbag_subscriber_;
         // ROS timestamp
         ros::Time timestamp_;
         // Passive Time Synchronizer
@@ -53,11 +57,25 @@ class CheetahSystem {
         bool updateNextPacket();
         // Publish output path
         void poseCallback(const CheetahState& state_);
+        // Imu call back (for time sync)
+        void timesyncCallback(const sensor_msgs::Imu::ConstPtr& imu_message);
         // Output file
         std::string file_name_;
         std::string tum_file_name_;
         // Publish path node enable flag
         bool enable_pose_publisher_;
+        //enable state publish flag
+        bool enable_state_publisher_;
+        //enable lcm and ros time match flag
+        bool enable_time_match_;
+        // flag check if time alreadt matched=
+        bool matched_;
+        //flag indicate lcm already recieve data 
+        bool updated_;
+        //flag indicate imu message from rosbag already buffered.
+        bool buffered_;
+        // ros imu message buffer for time sync`
+        sensor_msgs::Imu imu_buffer_;
 };
 
 #endif // CHEETAHSYSTEM_H

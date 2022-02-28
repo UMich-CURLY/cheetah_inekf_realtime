@@ -87,7 +87,8 @@ void BodyEstimator::update(cheetah_lcm_packet_t& cheetah_data, CheetahState& sta
     state.setBaseRotation(R);
     state.setBasePosition(p);
     state.setBaseVelocity(v); 
-
+    state.setCovarianceMatrix(filter_.getState().getP());
+    state.setTime(t);
     // Store previous imu data
     t_prev_ = t;
     imu_prev_ = imu;
@@ -248,7 +249,7 @@ void BodyEstimator::initState(const double t, const cheetah_lcm_packet_t& cheeta
     std::cout << filter_.getState() << std::endl;
     std::cout << "Robot's state covariance is initialized to: \n";
     std::cout << filter_.getState().getP() << std::endl;
-
+    
     // Set enabled flag
     t_prev_ = t;
     imu_prev_ << cheetah_data.imu.get()->angular_velocity.x, 

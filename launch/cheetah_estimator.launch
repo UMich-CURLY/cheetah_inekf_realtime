@@ -19,7 +19,7 @@
     <rosparam file="$(find cheetah_inekf_lcm)/config/prior.yaml" command="load"/>
 
     
-    <node name="InEKF_path_publisher" pkg="cheetah_inekf_lcm" type="path_publisher_node" output="screen">
+    <node name="InEKF_path_publisher" pkg="cheetah_inekf_lcm" type="path_publisher_cheetah_node" output="screen">
       <param name="pose_topic" value="/cheetah/inekf_estimation/pose"/>
       <param name="path_topic" value="/cheetah/inekf_estimation/path"/>
       <param name="publish_rate" value="2"/>

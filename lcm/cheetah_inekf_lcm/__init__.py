@@ -8,3 +8,4 @@ from .imu_t import imu_t
 from .kinematic_t import kinematic_t
 from .legcontrol_t import legcontrol_t
 from .pose_t import pose_t
+from .synced_proprioceptive_lcmt import synced_proprioceptive_lcmt
