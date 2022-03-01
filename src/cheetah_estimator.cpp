@@ -66,5 +66,6 @@ int main(int argc, char **argv)
         ros::spinOnce();
     }
 
+    delete system;
     return 0;
 }
