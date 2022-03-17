@@ -53,19 +53,18 @@ int main(int argc, char **argv)
     inekf::NoiseParams params;
 
     //TODO: Initialize CheetahSystem
-    CheetahSystem *system = new CheetahSystem(&lcm, &nh, &cdata_mtx, &cheetah_input_data);
+    CheetahSystem system(&lcm, &nh, &cdata_mtx, &cheetah_input_data);
     // system->setEstimator(std::make_shared<BodyEstimator>());
 
     // //TODO: Listen/Respond Loop
     bool received_data = true;
     while (lcm.handle() == 0 && ros::ok())
     {
-        system->step();
+        system.step();
         /// TODO: publish to ros
 
         ros::spinOnce();
     }
 
-    delete system;
     return 0;
 }
