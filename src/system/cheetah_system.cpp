@@ -11,19 +11,27 @@
 CheetahSystem::CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer): 
     lcm_(lcm), nh_(nh), ts_(0.05, 0.05), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx), estimator_(lcm), pose_publisher_node_(nh) {
     // Initialize inekf pose file printouts
-    nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
+    nh_->param<std::string>("/settings/system_inekf_kitti_pose_filename", file_name_, 
         "/media/jetson256g/data/inekf_result/cheetah_inekf_pose.txt");
     nh_->param<std::string>("/settings/system_inekf_tum_pose_filename", tum_file_name_, 
         "/media/jetson256g/data/inekf_result/cheetah_inekf_tum_pose.txt");
+    nh->param<bool>("/settings/system_enable_pose_log_txt", enable_pose_log_txt_, true);
 
-    std::ofstream outfile(file_name_);
-    std::ofstream tum_outfile(tum_file_name_);
-    outfile.close();
-    tum_outfile.close();
+    if(enable_pose_log_txt_) {
+        outfile.open(file_name_, std::ofstream::out);
+        tum_outfile.open(tum_file_name_, std::ofstream::out);
+        step_size_count_ = 0;
+        nh_->param<int>("/settings/system_pose_record_step_size", pose_record_step_size_, 1);
+        // Initialize pose publishing if requested
+        nh_->param<bool>("/settings/system_enable_pose_publisher", enable_pose_publisher_, false);
+    }
+}
 
-    // Initialize pose publishing if requested
-    nh_->param<bool>("/settings/system_enable_pose_publisher", enable_pose_publisher_, false);
-
+CheetahSystem::~CheetahSystem() {
+    if(enable_pose_log_txt_) {
+        outfile.close();
+        tum_outfile.close();
+    }
 }
 
 void CheetahSystem::step() {
@@ -55,17 +63,13 @@ void CheetahSystem::step() {
 }
 
 void CheetahSystem::poseCallback(const CheetahState& state_) {
-    if (file_name_.size() > 0) {
+    if (step_size_count_++ == pose_record_step_size_) {
         // ROS_INFO_STREAM("write new pose\n");
-        std::ofstream outfile(file_name_,std::ofstream::out | std::ofstream::app );
         outfile << "1 0 0 "<< state_.x() <<" 0 1 0 "<< state_.y() <<" 0 0 1 "<< state_.z() <<std::endl<<std::flush;
-        outfile.close();
         // tum style
-        std::ofstream tum_outfile(tum_file_name_,std::ofstream::out | std::ofstream::app );
         tum_outfile << cheetah_packet_.getTime() << " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
         <<" "<< state_.getQuaternion().y() <<" "<< state_.getQuaternion().z() <<" "<< state_.getQuaternion().w() <<std::endl<<std::flush;
-        
-        tum_outfile.close();
+        step_size_count_ = 0;
     }
 }
 

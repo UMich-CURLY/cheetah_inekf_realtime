@@ -1,8 +1,5 @@
 {
     "files.associations": {
-        "unordered_map": "cpp",
-        "unordered_set": "cpp",
-        "__node_handle": "cpp",
         "cctype": "cpp",
         "clocale": "cpp",
         "cmath": "cpp",
@@ -28,6 +25,8 @@
         "cstdint": "cpp",
         "deque": "cpp",
         "list": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
         "vector": "cpp",
         "exception": "cpp",
         "algorithm": "cpp",
