@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.14)
 
 project(cheetah_inekf_lcm)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3")
 # add_compile_options(-std=c++11)
 
 ## Compile as C++11, supported in ROS Kinetic and newer

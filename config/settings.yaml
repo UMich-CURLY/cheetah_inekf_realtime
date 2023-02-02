@@ -39,7 +39,7 @@ settings:
   estimator_publish_visualization_markers: true
   estimator_enable_debug: false
   estimator_lcm_pose_channel: "CHEETAH_POSE_CHANNEL"
-  estimator_static_bias_initialization: false
+  estimator_static_bias_initialization: true
 
   # Cheetah System
   system_enable_pose_publisher: true
